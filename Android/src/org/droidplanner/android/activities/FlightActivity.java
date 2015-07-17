@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.media.Image;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.FragmentManager;
@@ -28,13 +29,16 @@ import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
 import org.droidplanner.android.R;
 import org.droidplanner.android.fragments.DroneMap;
+import org.droidplanner.android.fragments.actionbar.RcFragment;
 import org.droidplanner.android.fragments.control.FlightControlManagerFragment;
 import org.droidplanner.android.fragments.FlightMapFragment;
 import org.droidplanner.android.fragments.TelemetryFragment;
+import org.droidplanner.android.fragments.helpers.ApiListenerFragment;
 import org.droidplanner.android.fragments.mode.FlightModePanel;
 import org.droidplanner.android.utils.prefs.AutoPanMode;
 
 import java.util.concurrent.atomic.AtomicBoolean;
+import android.support.v4.app.Fragment;
 
 public class FlightActivity extends DrawerNavigationUI {
 
@@ -155,6 +159,9 @@ public class FlightActivity extends DrawerNavigationUI {
     private ImageButton mGoToDroneLocation;
     private ImageButton actionDrawerToggle;
 
+    // add by ruan
+    private RcFragment mRcControl;
+
     @Override
     public void onDrawerClosed() {
         super.onDrawerClosed();
@@ -207,6 +214,30 @@ public class FlightActivity extends DrawerNavigationUI {
         mGoToDroneLocation = (ImageButton) findViewById(R.id.drone_location_button);
         actionDrawerToggle = (ImageButton) findViewById(R.id.toggle_action_drawer);
         actionDrawerToggle.setVisibility(View.VISIBLE);
+
+
+        //*************************** add by ruan
+        mRcControl = (RcFragment) fragmentManager.findFragmentById(R.id.rcFragment);
+        if (mRcControl == null) {
+            mRcControl = new RcFragment();
+            fragmentManager.beginTransaction()
+                    .add(R.id.rcFragment, mRcControl)
+                    .commit();
+        }
+        final ImageButton rcToggleButton = (ImageButton) findViewById(R.id.toggle_rc_pannel);
+        rcToggleButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mRcControl != null) {
+                    if( mRcControl.isHidden() ){
+                        fragmentManager.beginTransaction().show(mRcControl).commit();
+                    }else {
+                        fragmentManager.beginTransaction().hide(mRcControl).commit();
+                    }
+                }
+            }
+        });
+        //******** end
 
         actionDrawerToggle.setOnClickListener(new View.OnClickListener() {
             @Override

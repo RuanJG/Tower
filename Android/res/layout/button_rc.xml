@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_height="wrap_content"
+    android:layout_width="wrap_content"
+    android:orientation="vertical"
+    android:id="@+id/rc_button_container"
+    >
+
+    <ImageButton
+        android:id="@+id/toggle_rc_pannel"
+        tools:visibility="visible"
+        style="@style/mapButton"
+        android:src="@drawable/ic_flip"
+        />
+    <fragment
+        android:layout_width="300dp"
+        android:layout_height="200dp"
+        android:name="org.droidplanner.android.fragments.actionbar.RcFragment"
+        android:id="@+id/rcFragment"
+        />
+</LinearLayout>

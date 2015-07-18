@@ -4,9 +4,27 @@
     tools:context="org.droidplanner.android.fragments.actionbar.RcFragment"
     android:background="#fffffdfd">
 
-    <Switch
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/rcSwitch"/>
+        android:orientation="vertical"
+        >
+        <Switch
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/rcSwitch"/>
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/refreshParamBtn"
+            android:text="Refresh Param"/>
+        <TextView
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:id="@+id/statusText"
+            android:text="ready..."/>
+    </LinearLayout>
+
+
 
 </FrameLayout>

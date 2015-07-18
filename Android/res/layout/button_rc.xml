@@ -12,12 +12,12 @@
         android:id="@+id/toggle_rc_pannel"
         tools:visibility="visible"
         style="@style/mapButton"
-        android:src="@drawable/ic_flip"
+        android:src="@drawable/ic_control_active"
+        android:layout_marginBottom="5dp"
         />
-    <fragment
-        android:layout_width="300dp"
-        android:layout_height="200dp"
-        android:name="org.droidplanner.android.fragments.actionbar.RcFragment"
+    <FrameLayout
         android:id="@+id/rcFragment"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         />
 </LinearLayout>

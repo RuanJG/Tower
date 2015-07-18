@@ -1,112 +1,166 @@
 package org.droidplanner.android.fragments.actionbar;
 
-import android.app.Activity;
-import android.net.Uri;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.graphics.Color;
 import android.os.Bundle;
-import android.app.Fragment;
+import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.Switch;
+import android.widget.Toast;
 
+import com.google.android.gms.analytics.HitBuilders;
+import com.o3dr.android.client.Drone;
+import com.o3dr.services.android.lib.drone.attribute.AttributeEvent;
+import com.o3dr.services.android.lib.drone.attribute.AttributeEventExtra;
+import com.o3dr.services.android.lib.drone.attribute.AttributeType;
+import com.o3dr.services.android.lib.drone.property.GuidedState;
+import com.o3dr.services.android.lib.drone.property.State;
+import com.o3dr.services.android.lib.drone.property.VehicleMode;
+import com.o3dr.services.android.lib.gcs.follow.FollowState;
+import com.o3dr.services.android.lib.gcs.follow.FollowType;
+
+import org.droidplanner.android.DroidPlannerApp;
 import org.droidplanner.android.R;
+import org.droidplanner.android.activities.FlightActivity;
+import org.droidplanner.android.activities.helpers.SuperUI;
+import org.droidplanner.android.dialogs.SlideToUnlockDialog;
+import org.droidplanner.android.dialogs.YesNoDialog;
+import org.droidplanner.android.dialogs.YesNoWithPrefsDialog;
+import org.droidplanner.android.fragments.control.BaseFlightControlFragment;
+import org.droidplanner.android.fragments.helpers.ApiListenerFragment;
+import org.droidplanner.android.proxy.mission.MissionProxy;
+import org.droidplanner.android.utils.analytics.GAUtils;
 
-/**
- * A simple {@link Fragment} subclass.
- * Activities that contain this fragment must implement the
- * {@link RcFragment.OnFragmentInteractionListener} interface
- * to handle interaction events.
- * Use the {@link RcFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
-public class RcFragment extends Fragment {
+
+public class RcFragment  extends ApiListenerFragment  implements View.OnClickListener{
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
+    private static final String TAG = RcFragment.class.getSimpleName();
+    private static final String ACTION_FLIGHT_ACTION_BUTTON = "Copter flight action button";
+    Switch mSwitch ;
 
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
 
-    //private OnFragmentInteractionListener mListener;
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment RcFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static RcFragment newInstance(String param1, String param2) {
-        RcFragment fragment = new RcFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
+    private static final IntentFilter eventFilter = new IntentFilter();
+    static {
+        eventFilter.addAction(AttributeEvent.STATE_ARMING);
+        eventFilter.addAction(AttributeEvent.STATE_CONNECTED);
+        eventFilter.addAction(AttributeEvent.STATE_DISCONNECTED);
+        eventFilter.addAction(AttributeEvent.STATE_UPDATED);
+        eventFilter.addAction(AttributeEvent.STATE_VEHICLE_MODE);
+        eventFilter.addAction(AttributeEvent.FOLLOW_START);
+        eventFilter.addAction(AttributeEvent.FOLLOW_STOP);
+        eventFilter.addAction(AttributeEvent.FOLLOW_UPDATE);
+        eventFilter.addAction(AttributeEvent.MISSION_DRONIE_CREATED);
     }
+    private final BroadcastReceiver eventReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            final String action = intent.getAction();
+            switch (action) {
+                case AttributeEvent.STATE_ARMING:
+                case AttributeEvent.STATE_CONNECTED:
+                case AttributeEvent.STATE_DISCONNECTED:
+                case AttributeEvent.STATE_UPDATED:
+                    break;
+                case AttributeEvent.STATE_VEHICLE_MODE:
+                    break;
+                case AttributeEvent.FOLLOW_START:
+                case AttributeEvent.FOLLOW_STOP:
+                case AttributeEvent.FOLLOW_UPDATE:
+                    break;
 
-    public RcFragment() {
-        // Required empty public constructor
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
+                case AttributeEvent.MISSION_DRONIE_CREATED:
+                    break;
+            }
         }
+    };
+    protected void alertUser(String message) {
+        Toast.makeText(this.getActivity().getApplicationContext(), TAG+":"+message, Toast.LENGTH_SHORT).show();
+        Log.d(TAG, message);
     }
 
+
+
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_rc_control, container, false);
     }
+    @Override
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
 
-    // TODO: Rename method, update argument and hook method into UI event
-    public void onButtonPressed(Uri uri) {
-        //if (mListener != null) {
-        //    mListener.onFragmentInteraction(uri);
-       // }
+        mSwitch = (Switch) getActivity().findViewById(R.id.rcSwitch);
+        if(mSwitch != null)
+            mSwitch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if( mSwitch.isChecked() ){
+                    alertUser("start");
+                }else{
+                    alertUser("stop");
+                }
+            }
+        });
     }
 
     @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-        try {
-            ;//mListener = (OnFragmentInteractionListener) activity;
-        } catch (ClassCastException e) {
-            throw new ClassCastException(activity.toString()
-                    + " must implement OnFragmentInteractionListener");
+    public void onApiConnected() {
+        //super.onApiConnected();
+        alertUser("onApiConnected");
+        getBroadcastManager().registerReceiver(eventReceiver, eventFilter);
+    }
+
+    @Override
+    public void onApiDisconnected() {
+        //super.onApiDisconnected();
+        alertUser("onApiDisconnected");
+        getBroadcastManager().unregisterReceiver(eventReceiver);
+    }
+    /*
+    @Override
+    public boolean isSlidingUpPanelEnabled(Drone drone) {
+        if (!drone.isConnected())
+            return false;
+
+        final State droneState = drone.getAttribute(AttributeType.STATE);
+        return droneState.isArmed() && droneState.isFlying();
+    }*/
+
+    @Override
+    public void onClick(View v) {
+        HitBuilders.EventBuilder eventBuilder = new HitBuilders.EventBuilder()
+                .setCategory(GAUtils.Category.FLIGHT);
+
+        final Drone drone = getDrone();
+        eventBuilder = null;
+        switch (v.getId()) {
+            case R.id.rcSwitch:
+                if( mSwitch.isChecked() ){
+                    alertUser("start");
+                }else{
+                    alertUser("stop");
+                }
+                break;
+            default:
+                eventBuilder = null;
+                break;
+        }
+
+        if (eventBuilder != null) {
+            GAUtils.sendEvent(eventBuilder);
         }
     }
 
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        //mListener = null;
-    }
 
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p/>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
-    /*
-    public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
-        public void onFragmentInteraction(Uri uri);
-    }
-    */
+
+
 
 }

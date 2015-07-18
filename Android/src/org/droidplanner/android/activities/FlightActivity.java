@@ -6,12 +6,14 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Color;
 import android.media.Image;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.FragmentManager;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
@@ -161,6 +163,8 @@ public class FlightActivity extends DrawerNavigationUI {
 
     // add by ruan
     private RcFragment mRcControl;
+    private boolean rcMoveAble=false;
+    //end
 
     @Override
     public void onDrawerClosed() {
@@ -225,19 +229,64 @@ public class FlightActivity extends DrawerNavigationUI {
                     .commit();
         }
         final ImageButton rcToggleButton = (ImageButton) findViewById(R.id.toggle_rc_pannel);
+        rcToggleButton.setBackgroundColor(Color.argb(0, 255, 255, 255));
         rcToggleButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mRcControl != null) {
-                    if( mRcControl.isHidden() ){
-                        fragmentManager.beginTransaction().show(mRcControl).commit();
-                    }else {
-                        fragmentManager.beginTransaction().hide(mRcControl).commit();
+                if (mRcControl != null && !rcMoveAble) {
+                    //if (mRcControl.isHidden()) {
+                        if( findViewById(R.id.rcFragment).getVisibility() ==View.INVISIBLE ){
+                        //fragmentManager.beginTransaction().show(mRcControl).commit();
+                        //findViewById(R.id.rc_view).setVisibility(View.VISIBLE);
+                        findViewById(R.id.rcFragment).setVisibility(View.VISIBLE);
+                    } else {
+                        //fragmentManager.beginTransaction().hide(mRcControl).commit();
+                        //findViewById(R.id.rc_view).setVisibility(View.INVISIBLE);
+                        findViewById(R.id.rcFragment).setVisibility(View.INVISIBLE);
                     }
                 }
             }
         });
-        //******** end
+        rcToggleButton.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                //this will be run before action up
+                rcMoveAble = true;
+                rcToggleButton.setBackgroundColor(Color.argb(200, 200, 0, 0));
+                return false;
+            }
+        });
+        rcToggleButton.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent event) {
+                if (rcMoveAble ) {
+                    View v = findViewById(R.id.rc_view);
+                    int lastY = 0, lastX = 0;
+                    switch (event.getAction()) {
+                        case MotionEvent.ACTION_DOWN:
+                            Log.i(TAG, "down, y=" + event.getRawY());
+                            break;
+                        case MotionEvent.ACTION_MOVE:
+                            int dx = 0;//(int)event.getRawX()-lastX;
+                            int dy = (int) event.getRawY() - v.getTop();
+                            Log.i(TAG, "move, y=" + event.getRawY() + ",t=" + v.getTop());
+                            int l = v.getLeft() + dx;
+                            int b = v.getBottom() + dy;
+                            int r = v.getRight() + dx;
+                            int t = v.getTop() + dy;
+                            v.layout(l, t, r, b);
+                            break;
+                        case MotionEvent.ACTION_UP:
+                            rcMoveAble = false;
+                            rcToggleButton.setBackgroundColor(Color.argb(0, 255, 255, 255));
+                            break;
+                    }
+                }
+                return false;
+            }
+        });
+        //************************************************** end
+
 
         actionDrawerToggle.setOnClickListener(new View.OnClickListener() {
             @Override

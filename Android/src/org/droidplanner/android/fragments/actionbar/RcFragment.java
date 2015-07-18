@@ -6,12 +6,15 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.SeekBar;
 import android.widget.Switch;
 import android.widget.Toast;
 
@@ -27,6 +30,7 @@ import com.o3dr.services.android.lib.gcs.follow.FollowState;
 import com.o3dr.services.android.lib.gcs.follow.FollowType;
 
 import org.droidplanner.android.DroidPlannerApp;
+import org.droidplanner.android.JgRcOutput;
 import org.droidplanner.android.R;
 import org.droidplanner.android.activities.FlightActivity;
 import org.droidplanner.android.activities.helpers.SuperUI;
@@ -65,19 +69,25 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
         public void onReceive(Context context, Intent intent) {
             final String action = intent.getAction();
             switch (action) {
-                case AttributeEvent.STATE_ARMING:
                 case AttributeEvent.STATE_CONNECTED:
+                    doCopterConnect();
+                    break;
+                case AttributeEvent.PARAMETERS_REFRESH_STARTED:
+                    doCopterParamRefreshed();
+                    break;
                 case AttributeEvent.STATE_DISCONNECTED:
-                case AttributeEvent.STATE_UPDATED:
+                    doCopterDisconnect();
                     break;
                 case AttributeEvent.STATE_VEHICLE_MODE:
                     break;
+                case AttributeEvent.STATE_UPDATED:
+                case AttributeEvent.STATE_ARMING:
                 case AttributeEvent.FOLLOW_START:
                 case AttributeEvent.FOLLOW_STOP:
                 case AttributeEvent.FOLLOW_UPDATE:
-                    break;
-
                 case AttributeEvent.MISSION_DRONIE_CREATED:
+                    break;
+                default:
                     break;
             }
         }
@@ -98,23 +108,34 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
         super.onViewCreated(view, savedInstanceState);
 
         mSwitch = (Switch) getActivity().findViewById(R.id.rcSwitch);
-        if(mSwitch != null)
+
+        if(mSwitch != null) {
+            mSwitch.setChecked(false);
+            mSwitch.setOnClickListener(this);
+            /*
             mSwitch.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if( mSwitch.isChecked() ){
-                    alertUser("start");
-                }else{
-                    alertUser("stop");
+                @Override
+                public void onClick(View v) {
+                    if (mSwitch.isChecked()) {
+                        doStart();
+                    } else {
+                        doStop();
+                    }
                 }
-            }
-        });
+            });
+            */
+        }else{
+            alertUser("Switch init Error");
+        }
+
+        doInitRcOutput();
     }
 
     @Override
     public void onApiConnected() {
         //super.onApiConnected();
         alertUser("onApiConnected");
+        isApiConnect = true;
         getBroadcastManager().registerReceiver(eventReceiver, eventFilter);
     }
 
@@ -122,6 +143,7 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
     public void onApiDisconnected() {
         //super.onApiDisconnected();
         alertUser("onApiDisconnected");
+        isApiConnect = false;
         getBroadcastManager().unregisterReceiver(eventReceiver);
     }
     /*
@@ -144,9 +166,9 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
         switch (v.getId()) {
             case R.id.rcSwitch:
                 if( mSwitch.isChecked() ){
-                    alertUser("start");
+                    doStart();
                 }else{
-                    alertUser("stop");
+                    doStop();
                 }
                 break;
             default:
@@ -160,6 +182,128 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
     }
 
 
+
+    //********************************* rcFragment func
+    private JgRcOutput mRcOutput = null;
+    private boolean isApiConnect= false;
+    private boolean isCopterConnect(){
+        return null != getDrone() && getDrone().isConnected();
+    }
+    private boolean isSwitchOn = false;
+
+    private boolean isReady(){
+        return isApiConnect && isCopterConnect() && mRcOutput !=null;
+    }
+    public boolean isStarted(){
+        return mRcOutput != null && mRcOutput.isStarted();
+    }
+
+    private boolean startRcOutput(){
+        if( isStarted() )
+            return true;
+
+        boolean ret;
+        if( isReady() ){
+            if( mRcOutput.isReady() && mRcOutput.start() ){
+                ret = true;
+            }else{
+                //mRcOutput = null;
+                ret = false;
+            }
+        }else{
+            alertUser("Ensure the flight is connected");
+            return false;
+        }
+        return ret;
+    }
+    private void stopRcOutput(){
+        if( isStarted() ){
+            mRcOutput.stop();
+            //mRcOutput = null;
+        }
+    }
+    private  void doInitRcOutput(){
+        mRcOutput = new JgRcOutput(this.getContext(),mHandler);
+        mRcOutput.setmMode(JgRcOutput.HARDMODE);
+        mRcOutput.setRate(50);
+        //mRcOutput.setDrone(getDrone());
+        //mRcOutput.start();
+    }
+
+    //********************************************* reseponed the ui event
+    private void doCopterConnect(){
+        mRcOutput.setDrone(getDrone());
+        //isCopterConnect = true;
+        //mSwitch.setEnabled(true);
+        alertUser("DoConnect !!!");
+    }
+    private void doCopterDisconnect(){
+        alertUser("DoDisConnect !!!");
+        //isCopterConnect = false;
+        if( isStarted() ) {
+            stopRcOutput();
+        }
+        mSwitch.setChecked(false);
+        //mSwitch.setEnabled(false);
+        mRcOutput.setDrone(null);
+    }
+    private void doStart(){
+        if( !isCopterConnect() ){
+            isSwitchOn = false;
+            mSwitch.setChecked(false);
+            alertUser("  Connect to Flight First");
+            return ;
+        }
+        if( mRcOutput.getmMode() != JgRcOutput.SOFTWAREMODE ){
+            if( !startRcOutput() ){
+                mSwitch.setChecked(false);
+                isSwitchOn = false;
+                alertUser("  doStart RcOutput Failed");
+                return ;
+            }
+        }else {
+            // the tower don't update parameter default
+            refreshParameters();
+            //will be start in doCopterParamRefresh
+            isSwitchOn = true;
+        }
+    }
+    private void doStop(){
+        isSwitchOn = false;
+        stopRcOutput();
+    }
+    private void doCopterParamRefreshed(){
+        alertUser("doCopterParamRfereshed..");
+        if( isSwitchOn )
+            startRcOutput();
+    }
+    private void refreshParameters() {
+        if (getDrone().isConnected()) {
+            getDrone().refreshParameters();
+        } else {
+            Toast.makeText(getActivity(), R.string.msg_connect_first, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+
+    private Handler mHandler = new Handler(){
+        public void handleMessage(Message msg) {
+            if( mRcOutput == null) {
+                super.handleMessage(msg);
+                return;
+            }
+            switch (msg.what) {
+                case JgRcOutput.DRONE_ERROR:
+                    alertUser("Drone has something bad status, RcOutput exit");
+                case JgRcOutput.ALLID:
+                    break;
+                default:
+                    alertUser("unknow msg frome rcoutput");
+                    break;
+            }
+            super.handleMessage(msg);
+        }
+    };
 
 
 

@@ -65,5 +65,7 @@
     <dimen name="action_bar_telem_height">96dp</dimen>
     <dimen name="action_drawer_width">260dp</dimen>
     <dimen name="fab_edge_distance">16dp</dimen>
+    <dimen name="rc_view_top_margin">136dp</dimen>
+    <dimen name="rc_key_dp">40dp</dimen>
 
 </resources>

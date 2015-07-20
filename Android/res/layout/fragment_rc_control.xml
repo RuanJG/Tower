@@ -9,12 +9,85 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         >
+        <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res/org.droidplanner.android"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:focusable="false"
+            android:visibility="gone"
+            android:clickable="true">
+            <org.droidplanner.android.rcBaseView
+                android:clickable="true"
+                android:id="@+id/rcTouchView"
+                android:background="#ccc"
+                android:layout_width="300dp"
+                android:layout_height="300dp"
+                android:paddingLeft="2dp"
+                android:paddingBottom="2dp"
+                app:exampleDimension="24sp"
+                app:exampleColor="#33b5e5"
+                app:exampleString="Hi, rcBaseView"
+                app:exampleDrawable="@drawable/ic_action_location_2" />
+        </FrameLayout>
+        <FrameLayout
+            android:visibility="gone"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <fragment
+                android:layout_width="300dp"
+                android:layout_height="300dp"
+                android:id="@+id/rcKeyFragment"
+                android:name="org.droidplanner.android.fragments.actionbar.rcKeyFragment"/>
+        </FrameLayout>
+        <FrameLayout
+            android:visibility="gone"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <include
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                layout="@layout/rc_key_pannel"
+                android:id="@+id/rcKeyPannel"
+                android:clickable="true"
+                />
+        </FrameLayout>
+
+        <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="200dp"
+                android:layout_height="wrap_content">
+
+                <SeekBar
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/seekBar2" />
+                <SeekBar
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/seekBar3" />
+                <SeekBar
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/seekBar34" />
+                <SeekBar
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/seekBar5" />
+                <SeekBar
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:backgroundTintMode="screen"
+                    android:id="@+id/seekBar6" />
+
+        </LinearLayout>
+
+
         <Switch
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/rcSwitch"/>
+
         <TextView
-            android:layout_width="200dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/statusText"
             android:text="ready..."/>

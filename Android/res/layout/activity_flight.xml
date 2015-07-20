@@ -67,8 +67,9 @@
             layout="@layout/button_rc"
             android:layout_below="@+id/actionbar_container"
             android:layout_alignLeft="@+id/actionbar_container"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="@dimen/rc_view_top_margin"
             android:id="@+id/rc_view"
+            android:clickable="true"
             />
 
     </RelativeLayout>

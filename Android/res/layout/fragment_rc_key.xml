@@ -1,0 +1,86 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    tools:context="org.droidplanner.android.fragments.actionbar.rcKeyFragment">
+
+    <!-- TODO: Update blank fragment layout -->
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="fill_parent"
+        android:layout_height="match_parent"
+        android:gravity="center">
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="5dp"
+            android:id="@+id/rcLable"
+            android:text="Rc"
+            android:gravity="left" />
+
+        <TableLayout
+            android:layout_width="fill_parent"
+            android:layout_height="match_parent">
+            <TableRow>
+                <FrameLayout
+                    android:id="@+id/bland1"
+                    android:layout_width="@dimen/rc_key_dp"
+                    android:layout_height="@dimen/rc_key_dp"/>
+                <ImageButton
+                    android:id="@+id/toggle_rc_pannel"
+                    tools:visibility="visible"
+                    style="@style/mapButton"
+                    android:src="@drawable/ic_control_active"
+                    android:layout_marginBottom="5dp"
+                    />
+                <ImageButton
+                    android:layout_width="@dimen/rc_key_dp"
+                    android:layout_height="@dimen/rc_key_dp"
+                    android:src="@drawable/ic_rc_direct_up_blue"
+                    android:id="@+id/thrAddBtn"
+                    android:background="@drawable/btn_explore"
+                    android:layout_marginBottom="5dp" />
+                <FrameLayout
+                    android:id="@+id/bland2"
+                    android:layout_width="@dimen/rc_key_dp"
+                    android:layout_height="@dimen/rc_key_dp"/>
+            </TableRow>
+            <TableRow>
+                <ImageButton
+                    android:layout_width="@dimen/rc_key_dp"
+                    android:layout_height="@dimen/rc_key_dp"
+                    android:src="@drawable/ic_rc_direct_left_blue"
+                    android:id="@+id/yawSubBtn"
+                    />
+                <FrameLayout
+                    android:id="@+id/bland3"
+                    android:layout_width="@dimen/rc_key_dp"
+                    android:layout_height="@dimen/rc_key_dp"/>
+                <ImageButton
+                    android:layout_width="@dimen/rc_key_dp"
+                    android:layout_height="@dimen/rc_key_dp"
+                    android:src="@drawable/ic_rc_direct_right_blue"
+                    android:id="@+id/yawAddBtn"
+                    />
+            </TableRow>
+            <TableRow>
+                <FrameLayout
+                    android:id="@+id/bland4"
+                    android:layout_width="@dimen/rc_key_dp"
+                    android:layout_height="@dimen/rc_key_dp"/>
+                <ImageButton
+                    android:layout_width="@dimen/rc_key_dp"
+                    android:layout_height="@dimen/rc_key_dp"
+                    android:src="@drawable/ic_rc_direct_down_blue"
+                    android:id="@+id/thrSubBtn"
+                    />
+                <FrameLayout
+                    android:id="@+id/bland5"
+                    android:layout_width="@dimen/rc_key_dp"
+                    android:layout_height="@dimen/rc_key_dp"/>
+            </TableRow>
+        </TableLayout>
+
+    </LinearLayout>
+
+</FrameLayout>

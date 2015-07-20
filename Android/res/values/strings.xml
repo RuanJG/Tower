@@ -557,4 +557,7 @@
     <string name="pref_min_alt_title">Min altitude value</string>
     <string name="pref_default_alt_title">Default altitude value</string>
 
+<!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
 </resources>

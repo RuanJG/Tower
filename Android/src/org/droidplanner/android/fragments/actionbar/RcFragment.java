@@ -51,7 +51,6 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
     private static final String ACTION_FLIGHT_ACTION_BUTTON = "Copter flight action button";
     Switch mSwitch ;
     TextView mStatusText;
-    Button refreshParamBtn;
 
 
 
@@ -66,6 +65,7 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
         eventFilter.addAction(AttributeEvent.FOLLOW_STOP);
         eventFilter.addAction(AttributeEvent.FOLLOW_UPDATE);
         eventFilter.addAction(AttributeEvent.MISSION_DRONIE_CREATED);
+        eventFilter.addAction(AttributeEvent.PARAMETERS_REFRESH_COMPLETED);
     }
     private final BroadcastReceiver eventReceiver = new BroadcastReceiver() {
         @Override
@@ -75,7 +75,7 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
                 case AttributeEvent.STATE_CONNECTED:
                     doCopterConnect();
                     break;
-                case AttributeEvent.PARAMETERS_REFRESH_STARTED:
+                case AttributeEvent.PARAMETERS_REFRESH_COMPLETED:
                     doCopterParamRefreshed();
                     break;
                 case AttributeEvent.STATE_DISCONNECTED:
@@ -100,7 +100,7 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
         debugMsg(message);
     }
     private  void debugMsg(String msg){
-        Log.d(TAG,msg);
+        Log.d(TAG, msg);
         mStatusText.setText(msg);
     }
 
@@ -123,8 +123,6 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
         }
 
         mStatusText = (TextView) getActivity().findViewById(R.id.statusText);
-        refreshParamBtn = (Button) getActivity().findViewById(R.id.refreshParamBtn);
-        refreshParamBtn.setOnClickListener(this);
 
         doInitRcOutput();
     }
@@ -144,15 +142,6 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
         isApiConnect = false;
         getBroadcastManager().unregisterReceiver(eventReceiver);
     }
-    /*
-    @Override
-    public boolean isSlidingUpPanelEnabled(Drone drone) {
-        if (!drone.isConnected())
-            return false;
-
-        final State droneState = drone.getAttribute(AttributeType.STATE);
-        return droneState.isArmed() && droneState.isFlying();
-    }*/
 
     @Override
     public void onClick(View v) {
@@ -169,8 +158,6 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
                     doStop();
                 }
                 break;
-            case R.id.refreshParamBtn:
-                refreshParameters();
             default:
                 eventBuilder = null;
                 break;
@@ -190,6 +177,7 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
         return null != getDrone() && getDrone().isConnected();
     }
     private boolean isSwitchOn = false;
+    private boolean isParamUpdated = false;
 
     private boolean isReady(){
         return isApiConnect && isCopterConnect() && mRcOutput !=null;
@@ -224,7 +212,7 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
     }
     private  void doInitRcOutput(){
         mRcOutput = new JgRcOutput(this.getContext(),mHandler);
-        mRcOutput.setmMode(JgRcOutput.HARDMODE);
+        mRcOutput.setmMode(JgRcOutput.SOFTWAREMODE);
         mRcOutput.setRate(50);
         //mRcOutput.setDrone(getDrone());
         //mRcOutput.start();
@@ -233,6 +221,7 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
     //********************************************* reseponed the ui event
     private void doCopterConnect(){
         mRcOutput.setDrone(getDrone());
+        isParamUpdated =false;
         //isCopterConnect = true;
         //mSwitch.setEnabled(true);
         alertUser("DoConnect !!!");
@@ -246,27 +235,40 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
         mSwitch.setChecked(false);
         //mSwitch.setEnabled(false);
         mRcOutput.setDrone(null);
+        isParamUpdated =false;
+    }
+    private void doStartFailed(String msg){
+        isSwitchOn = false;
+        mSwitch.setChecked(false);
+        alertUser(msg);
     }
     private void doStart(){
         if( !isCopterConnect() ){
-            isSwitchOn = false;
-            mSwitch.setChecked(false);
-            alertUser("  Connect to Flight First");
-            return ;
+            doStartFailed(" Connect Flight First");
+            return;
         }
-        if( mRcOutput.getmMode() != JgRcOutput.SOFTWAREMODE ){
-            if( !startRcOutput() ){
-                mSwitch.setChecked(false);
-                isSwitchOn = false;
-                alertUser("  doStart RcOutput Failed");
-                return ;
-            }
-        }else {
-            // the tower don't update parameter default
-            refreshParameters();
-            //will be start in doCopterParamRefresh
+        if( isStarted() ){
             isSwitchOn = true;
+            return;
         }
+        if( mRcOutput.getmMode() == JgRcOutput.HARDMODE ){
+            if( !startRcOutput() ){
+                doStartFailed(" Start Rc Output Failed");
+                return;
+            }
+        }
+        if(mRcOutput.getmMode() == JgRcOutput.SOFTWAREMODE && isParamUpdated) {
+            if( !startRcOutput() ){
+                doStartFailed(" Start Rc Output SOFTWAREMODE Failed");
+                return;
+            }
+        }else{
+            // waiting update parameter
+            //refreshParameters();
+            //will be start in doCopterParamRefresh
+            debugMsg("Start Rc Output after parameter received");
+        }
+        isSwitchOn = true;
     }
     private void doStop(){
         isSwitchOn = false;
@@ -274,6 +276,7 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
     }
     private void doCopterParamRefreshed(){
         alertUser("doCopterParamRfereshed..");
+        isParamUpdated =true;
         if( isSwitchOn )
             startRcOutput();
     }

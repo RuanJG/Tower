@@ -16,6 +16,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.SeekBar;
 import android.widget.Switch;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.analytics.HitBuilders;
@@ -49,6 +50,8 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
     private static final String TAG = RcFragment.class.getSimpleName();
     private static final String ACTION_FLIGHT_ACTION_BUTTON = "Copter flight action button";
     Switch mSwitch ;
+    TextView mStatusText;
+    Button refreshParamBtn;
 
 
 
@@ -94,7 +97,11 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
     };
     protected void alertUser(String message) {
         Toast.makeText(this.getActivity().getApplicationContext(), TAG+":"+message, Toast.LENGTH_SHORT).show();
-        Log.d(TAG, message);
+        debugMsg(message);
+    }
+    private  void debugMsg(String msg){
+        Log.d(TAG,msg);
+        mStatusText.setText(msg);
     }
 
 
@@ -108,25 +115,16 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
         super.onViewCreated(view, savedInstanceState);
 
         mSwitch = (Switch) getActivity().findViewById(R.id.rcSwitch);
-
         if(mSwitch != null) {
             mSwitch.setChecked(false);
             mSwitch.setOnClickListener(this);
-            /*
-            mSwitch.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if (mSwitch.isChecked()) {
-                        doStart();
-                    } else {
-                        doStop();
-                    }
-                }
-            });
-            */
         }else{
             alertUser("Switch init Error");
         }
+
+        mStatusText = (TextView) getActivity().findViewById(R.id.statusText);
+        refreshParamBtn = (Button) getActivity().findViewById(R.id.refreshParamBtn);
+        refreshParamBtn.setOnClickListener(this);
 
         doInitRcOutput();
     }
@@ -171,6 +169,8 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
                     doStop();
                 }
                 break;
+            case R.id.refreshParamBtn:
+                refreshParameters();
             default:
                 eventBuilder = null;
                 break;
@@ -278,8 +278,9 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
             startRcOutput();
     }
     private void refreshParameters() {
-        if (getDrone().isConnected()) {
+        if (isCopterConnect()) {
             getDrone().refreshParameters();
+            debugMsg("Refreshing Parameters ... ");
         } else {
             Toast.makeText(getActivity(), R.string.msg_connect_first, Toast.LENGTH_SHORT).show();
         }

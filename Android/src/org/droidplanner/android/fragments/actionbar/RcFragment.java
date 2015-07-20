@@ -97,7 +97,8 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
     };
     protected void alertUser(String message) {
         Toast.makeText(this.getActivity().getApplicationContext(), TAG+":"+message, Toast.LENGTH_SHORT).show();
-        debugMsg(message);
+        Log.d(TAG, message);
+        //debugMsg(message);
     }
     private  void debugMsg(String msg){
         Log.d(TAG, msg);
@@ -202,6 +203,7 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
             alertUser("Ensure the flight is connected");
             return false;
         }
+        debugMsg("Rc Outputing...");
         return ret;
     }
     private void stopRcOutput(){
@@ -209,6 +211,7 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
             mRcOutput.stop();
             //mRcOutput = null;
         }
+        debugMsg("Rc Stop");
     }
     private  void doInitRcOutput(){
         mRcOutput = new JgRcOutput(this.getContext(),mHandler);
@@ -283,7 +286,7 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
     private void refreshParameters() {
         if (isCopterConnect()) {
             getDrone().refreshParameters();
-            debugMsg("Refreshing Parameters ... ");
+            alertUser("Refreshing Parameters ... ");
         } else {
             Toast.makeText(getActivity(), R.string.msg_connect_first, Toast.LENGTH_SHORT).show();
         }

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.widget.Toast;
 
 import com.MAVLink.common.msg_rc_channels_override;
@@ -63,17 +64,23 @@ public class JgRcOutput{
     public static  final  int SOFTWAREMODE = 1; //use parameter rc value first
     private int mMode = SOFTWAREMODE;
 
+    public static  final int KeyADDTYPE = 0;
+    public static  final int KeySUBTYPE = 1;
+    private int [][] mKeyMap = new int[8][2]; //[id][KeyAddTYPE]
+
     public  JgRcOutput(Drone drone, Context context, Handler handler){
         mContext = context;
         mDrone = drone;
         mClientRcUpdateHandler = handler;
         initRcOutput();
+        initKeyMap();
     }
     public  JgRcOutput(Context context, Handler handler){
         mContext = context;
         mDrone = null;
         mClientRcUpdateHandler = handler;
         initRcOutput();
+        initKeyMap();
     }
     public boolean setDrone(Drone drone){
         if( isStarted() ){
@@ -226,6 +233,31 @@ public class JgRcOutput{
         }
         debugMsg("initRcOutput !!");
     }
+    private void initKeyMap(){
+        mKeyMap[ROLLID][KeyADDTYPE] = KeyEvent.KEYCODE_3;
+        mKeyMap[ROLLID][KeySUBTYPE] = KeyEvent.KEYCODE_1;
+
+        mKeyMap[PITCHID][KeyADDTYPE] = KeyEvent.KEYCODE_4;
+        mKeyMap[PITCHID][KeySUBTYPE] = KeyEvent.KEYCODE_2;
+
+        mKeyMap[THRID][KeyADDTYPE] = KeyEvent.KEYCODE_W;
+        mKeyMap[THRID][KeySUBTYPE] = KeyEvent.KEYCODE_S;
+
+        mKeyMap[YAWID][KeyADDTYPE] = KeyEvent.KEYCODE_D;
+        mKeyMap[YAWID][KeySUBTYPE] = KeyEvent.KEYCODE_A;
+
+        mKeyMap[CHN5ID][KeyADDTYPE] = KeyEvent.KEYCODE_6;
+        mKeyMap[CHN5ID][KeySUBTYPE] = KeyEvent.KEYCODE_5;
+
+        mKeyMap[CHN6ID][KeyADDTYPE] = KeyEvent.KEYCODE_8;
+        mKeyMap[CHN6ID][KeySUBTYPE] = KeyEvent.KEYCODE_7;
+
+        mKeyMap[CHN7ID][KeyADDTYPE] = KeyEvent.KEYCODE_9;
+        mKeyMap[CHN7ID][KeySUBTYPE] = KeyEvent.KEYCODE_0;
+
+        mKeyMap[CHN8ID][KeyADDTYPE] = KeyEvent.KEYCODE_M;
+        mKeyMap[CHN8ID][KeySUBTYPE] = KeyEvent.KEYCODE_N;
+    }
     private void updateParamRc(){
         int i;
         Parameters droneParams = mDrone.getAttribute(AttributeType.PARAMETERS);
@@ -307,9 +339,12 @@ public class JgRcOutput{
         return String.valueOf(rcOutputs[id]);
     }
     public short getRcById(int id){
+        if( id >= ALLID) return 0;
         return rcOutputs[id];
     }
     public boolean setRcById(int id, short rc){
+        if( id >= ALLID) return false;
+
         if( rc <= rcParamValue[id][2] && rc >= rcParamValue[id][0]){
             rcOutputs[id] = rc;
         }else{
@@ -322,6 +357,13 @@ public class JgRcOutput{
         //sendRcMsg();
         //onRcChanged(ALLID);
         return true;
+    }
+
+    public int getRcKeyById(int id,int type){
+        return mKeyMap[id][type];
+    }
+    public void setRcKeyById(int id,int type,int key){
+        mKeyMap[id][type] = key;
     }
 
     //debug

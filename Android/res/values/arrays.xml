@@ -250,5 +250,11 @@
         <item name="metric">1</item>
         <item name="imperial">2</item>
     </string-array>
+    <string-array name="rc_jostick_mode" >
+        <item>Hard Super Mode</item>
+        <item>Hard Simple Mode</item>
+        <item>SoftWare Super Mode</item>
+        <item>SoftWare Simple Mode</item>
+    </string-array>
 
 </resources>

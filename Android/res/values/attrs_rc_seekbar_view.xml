@@ -1,0 +1,10 @@
+<resources>
+    <declare-styleable name="rcSeekbarView">
+        <attr name="rcString" format="string" />
+        <attr name="rcTextDimension" format="dimension" />
+        <attr name="rcColor" format="color" />
+        <attr name="Max" format="integer" />
+        <attr name="Min" format="integer" />
+        <attr name="Id" format="integer" />
+    </declare-styleable>
+</resources>

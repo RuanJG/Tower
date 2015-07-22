@@ -10,11 +10,14 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.v4.app.Fragment;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.SeekBar;
+import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -42,16 +45,28 @@ import org.droidplanner.android.fragments.control.BaseFlightControlFragment;
 import org.droidplanner.android.fragments.helpers.ApiListenerFragment;
 import org.droidplanner.android.proxy.mission.MissionProxy;
 import org.droidplanner.android.utils.analytics.GAUtils;
+import org.droidplanner.android.widgets.rcSeekbarView;
+
+import java.util.Arrays;
 
 
-public class RcFragment  extends ApiListenerFragment  implements View.OnClickListener{
+public class RcFragment  extends ApiListenerFragment  implements View.OnClickListener {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String TAG = RcFragment.class.getSimpleName();
     private static final String ACTION_FLIGHT_ACTION_BUTTON = "Copter flight action button";
     Switch mSwitch ;
     TextView mStatusText;
+    private static boolean []keyLockRang=new boolean[8];
 
+    private Spinner rcOutputMode ;
+
+    IRcOutputListen seekBarListen = new IRcOutputListen() {
+        @Override
+        public boolean doSetRcValue(int id, int value) {
+            return doSetRc(id,value);
+        }
+    };
 
 
     private static final IntentFilter eventFilter = new IntentFilter();
@@ -109,12 +124,13 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        alertUser("onCreateView");
         return inflater.inflate(R.layout.fragment_rc_control, container, false);
     }
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
+        alertUser("onViewCreated");
         mSwitch = (Switch) getActivity().findViewById(R.id.rcSwitch);
         if(mSwitch != null) {
             mSwitch.setChecked(false);
@@ -125,7 +141,25 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
 
         mStatusText = (TextView) getActivity().findViewById(R.id.statusText);
 
-        doInitRcOutput();
+        Arrays.fill(keyLockRang, false);
+        keyLockRang[JgRcOutput.ROLLID] = true;
+        keyLockRang[JgRcOutput.YAWID] = true;
+        keyLockRang[JgRcOutput.PITCHID] = true;
+
+        initRcSeekBar();
+
+        rcOutputMode = (Spinner) getActivity().findViewById(R.id.rcOutputMode);
+        rcOutputMode.setOnItemSelectedListener(new Spinner.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                Log.d(TAG,"get position,id="+position+id);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                // Do nothing
+            }
+        });
     }
 
     @Override
@@ -134,14 +168,22 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
         alertUser("onApiConnected");
         isApiConnect = true;
         getBroadcastManager().registerReceiver(eventReceiver, eventFilter);
+
+        //init and resume to the last status
+        doInitRcOutput();
+        if( getDrone().isConnected()){
+            if( mSwitch.isChecked() )
+                mSwitch.setChecked(false);
+        }
     }
 
     @Override
     public void onApiDisconnected() {
         //super.onApiDisconnected();
-        alertUser("onApiDisconnected");
         isApiConnect = false;
+        doStop();
         getBroadcastManager().unregisterReceiver(eventReceiver);
+        alertUser("onApiDisconnected");
     }
 
     @Override
@@ -292,6 +334,139 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
         }
     }
 
+    private int rcRange = 100;
+    private int pressKeyCount=0;
+    public boolean doKeyEven(int keyCode, KeyEvent event) {
+        int id=-1;
+        int rc=0;
+        int i;
+        boolean press;
+
+        if( event.ACTION_DOWN == event.getAction()) {
+            pressKeyCount = pressKeyCount>1?pressKeyCount:1+pressKeyCount;
+            press = true;
+            debugMsg("a key down:" + keyCode);
+        }else {
+            pressKeyCount = 0;
+            press = false;
+            debugMsg("a key up" + keyCode);
+        }
+
+
+        if( pressKeyCount >1
+                && keyCode != mRcOutput.getRcKeyById(JgRcOutput.THRID,JgRcOutput.KeyADDTYPE)
+                && keyCode != mRcOutput.getRcKeyById(JgRcOutput.THRID,JgRcOutput.KeyADDTYPE)  )
+        { //ignore the long press event
+            //if( id != JgRcOutput.THRID ){
+            return true;
+            //}
+        }
+
+        //if( !isStarted() )
+         //   return true;
+        for( i = 0 ; i<= JgRcOutput.CHN8ID; i++){
+            if(keyCode == mRcOutput.getRcKeyById(i,JgRcOutput.KeyADDTYPE)){
+                id = i;
+                if( press ) { //key down
+                    rc = rcRange;
+                }else {        //key up
+                    if( keyLockRang[i] )//key lock a range
+                        rc = rcRange * (-1);
+                    else
+                        rc = 0;
+                }
+                break;
+            }
+            if( keyCode == mRcOutput.getRcKeyById(i,JgRcOutput.KeySUBTYPE)){
+                id = i;
+                if( press ) {
+                    rc = rcRange * (-1);
+                }else {
+                    if(keyLockRang[i] )
+                        rc = rcRange;
+                    else
+                        rc = 0;
+                }
+                break;
+            }
+        }
+
+        //update rc
+        debugMsg("updateRcSeekBar id,rc="+id+","+rc);
+        if( id != -1 ){
+            doRcChanged(id, mRcOutput.getRcById(id)+rc );
+            return true;
+        }else{
+            return false;
+        }
+
+    }
+
+    //mRcOutput call back use
+    public void doUpdateRcUi(int id){
+        updateRcSeekBar(id);
+    }
+    //key event or other control event use
+    public void doRcChanged(int id,int value){
+        if( mRcOutput.setRcById(id, (short) value) ){
+            doUpdateRcUi(id);
+        }
+    }
+    //seekbar call it to set rc
+    private boolean doSetRc(int id, int value){
+        return mRcOutput.setRcById(id, (short) value);
+    }
+
+    private void initRcSeekBar(){
+        rcSeekbarView bar;
+        for( int i=0; i<= JgRcOutput.CHN8ID; i++){
+            bar = getSeekBarByRcId(i);
+            bar.setId(i);
+            bar.setRcListen(seekBarListen);
+        }
+    }
+    private rcSeekbarView getSeekBarByRcId(int id){
+        rcSeekbarView bar;
+        switch (id){
+            case JgRcOutput.ROLLID:
+                bar = (rcSeekbarView) getActivity().findViewById(R.id.rcRollSeekBar);
+                break;
+            case JgRcOutput.PITCHID:
+                bar = (rcSeekbarView) getActivity().findViewById(R.id.rcPitchSeekBar);
+                break;
+            case JgRcOutput.THRID:
+                bar = (rcSeekbarView) getActivity().findViewById(R.id.rcThrSeekBar);
+                break;
+            case JgRcOutput.YAWID:
+                bar = (rcSeekbarView) getActivity().findViewById(R.id.rcYawSeekBar);
+                break;
+            case JgRcOutput.CHN5ID:
+                bar = (rcSeekbarView) getActivity().findViewById(R.id.rcRc5SeekBar);
+                break;
+            case JgRcOutput.CHN6ID:
+                bar = (rcSeekbarView) getActivity().findViewById(R.id.rcRc6SeekBar);
+                break;
+            case JgRcOutput.CHN7ID:
+                bar = (rcSeekbarView) getActivity().findViewById(R.id.rcRc7SeekBar);
+                break;
+            case JgRcOutput.CHN8ID:
+                bar = (rcSeekbarView) getActivity().findViewById(R.id.rcRc8SeekBar);
+                break;
+            default:
+                bar = null;
+        }
+        return bar;
+    }
+    private void updateRcSeekBar(int id) {
+        rcSeekbarView bar;
+        debugMsg("updateRcSeekBar");
+        bar = getSeekBarByRcId(id);
+        debugMsg("try update id ="+id);
+        if( bar != null ){
+            bar.setProcess(mRcOutput.getRcById(id));
+        }
+    }
+
 
     private Handler mHandler = new Handler(){
         public void handleMessage(Message msg) {
@@ -303,6 +478,8 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
                 case JgRcOutput.DRONE_ERROR:
                     alertUser("Drone has something bad status, RcOutput exit");
                 case JgRcOutput.ALLID:
+                    for( int i=0 ; i<= JgRcOutput.CHN8ID; i++)
+                        doUpdateRcUi(i);
                     break;
                 default:
                     alertUser("unknow msg frome rcoutput");

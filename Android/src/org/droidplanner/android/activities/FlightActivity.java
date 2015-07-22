@@ -13,6 +13,7 @@ import android.os.Handler;
 import android.support.v4.app.FragmentManager;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -235,7 +236,7 @@ public class FlightActivity extends DrawerNavigationUI {
             public void onClick(View v) {
                 if (mRcControl != null && !rcMoveAble) {
                     //if (mRcControl.isHidden()) {
-                        if( findViewById(R.id.rcFragment).getVisibility() ==View.INVISIBLE ){
+                    if (findViewById(R.id.rcFragment).getVisibility() == View.INVISIBLE) {
                         //fragmentManager.beginTransaction().show(mRcControl).commit();
                         //findViewById(R.id.rc_view).setVisibility(View.VISIBLE);
                         findViewById(R.id.rcFragment).setVisibility(View.VISIBLE);
@@ -259,7 +260,7 @@ public class FlightActivity extends DrawerNavigationUI {
         rcToggleButton.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View view, MotionEvent event) {
-                if (rcMoveAble ) {
+                if (rcMoveAble) {
                     View v = findViewById(R.id.rc_view);
                     int lastY = 0, lastX = 0;
                     switch (event.getAction()) {
@@ -385,6 +386,24 @@ public class FlightActivity extends DrawerNavigationUI {
         if (isActionDrawerOpened)
             openActionDrawer();
     }
+
+    //*************** ruan
+    public boolean onKeyDown(int keyCode, KeyEvent event){
+        if( mRcControl.doKeyEven(keyCode,event) ){
+            return true;
+        }else{
+            return super.onKeyDown(keyCode,event);
+        }
+    }
+    public boolean onKeyUp(int keyCode, KeyEvent event){
+        if( mRcControl.doKeyEven(keyCode,event) ){
+            return true;
+        }else{
+            return super.onKeyUp(keyCode, event);
+        }
+    }
+    //******************* end
+
 
     @Override
     public void onSaveInstanceState(Bundle outState) {

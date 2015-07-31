@@ -177,11 +177,27 @@
 
         </LinearLayout>
 
+
+
         <Space
             android:layout_width="match_parent"
             android:layout_height="10dp" />
 
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <TextView
+            android:layout_width="80dp"
+            android:layout_height="wrap_content"
+            android:id="@+id/rcRangeText"
+            android:text="RcRange"/>
+        <SeekBar
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/rcRangeSeekBar"
+            android:max="500" />
+    </LinearLayout>
 
 
         <LinearLayout
@@ -192,11 +208,11 @@
                 android:layout_height="wrap_content"
                 android:id="@+id/rcSwitch"/>
             <Spinner
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:id="@+id/rcOutputMode"
-                android:entries="@array/rc_jostick_mode"/>
-
+                android:entries="@array/rc_jostick_mode"
+                style="@style/Widget.AppCompat.DropDownItem.Spinner" />
         </LinearLayout>
 
 

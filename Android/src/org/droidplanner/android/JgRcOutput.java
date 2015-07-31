@@ -216,7 +216,7 @@ public class JgRcOutput{
         }else
             debugMsg("sendRcMsg false , no Ready");
 
-        return true;
+        return false;
     }
 
 

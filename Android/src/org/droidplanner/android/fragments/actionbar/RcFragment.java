@@ -54,12 +54,15 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String TAG = RcFragment.class.getSimpleName();
+    private static final int RANGEID = 20;
     private static final String ACTION_FLIGHT_ACTION_BUTTON = "Copter flight action button";
     Switch mSwitch ;
     TextView mStatusText;
     private static boolean []keyLockRang=new boolean[8];
 
     private Spinner rcOutputMode ;
+    private int rcChangeRange = 100;
+    private int pressKeyCount=0;
 
     IRcOutputListen seekBarListen = new IRcOutputListen() {
         @Override
@@ -145,8 +148,24 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
         keyLockRang[JgRcOutput.ROLLID] = true;
         keyLockRang[JgRcOutput.YAWID] = true;
         keyLockRang[JgRcOutput.PITCHID] = true;
-
         initRcSeekBar();
+
+        setRcChangeRange(rcChangeRange);
+        SeekBar rcRangBar = (SeekBar)this.getActivity().findViewById(R.id.rcRangeSeekBar);
+        rcRangBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                setRcChangeRange(progress);
+            }
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
 
         rcOutputMode = (Spinner) getActivity().findViewById(R.id.rcOutputMode);
         rcOutputMode.setOnItemSelectedListener(new Spinner.OnItemSelectedListener() {
@@ -334,8 +353,6 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
         }
     }
 
-    private int rcRange = 100;
-    private int pressKeyCount=0;
     public boolean doKeyEven(int keyCode, KeyEvent event) {
         int id=-1;
         int rc=0;
@@ -368,10 +385,10 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
             if(keyCode == mRcOutput.getRcKeyById(i,JgRcOutput.KeyADDTYPE)){
                 id = i;
                 if( press ) { //key down
-                    rc = rcRange;
+                    rc = rcChangeRange;
                 }else {        //key up
                     if( keyLockRang[i] )//key lock a range
-                        rc = rcRange * (-1);
+                        rc = rcChangeRange * (-1);
                     else
                         rc = 0;
                 }
@@ -380,10 +397,10 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
             if( keyCode == mRcOutput.getRcKeyById(i,JgRcOutput.KeySUBTYPE)){
                 id = i;
                 if( press ) {
-                    rc = rcRange * (-1);
+                    rc = rcChangeRange * (-1);
                 }else {
                     if(keyLockRang[i] )
-                        rc = rcRange;
+                        rc = rcChangeRange;
                     else
                         rc = 0;
                 }
@@ -424,6 +441,21 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
             bar.setId(i);
             bar.setRcListen(seekBarListen);
         }
+    }
+
+    void setRcChangeRange(int range)
+    {
+        SeekBar bar= (SeekBar) this.getActivity().findViewById(R.id.rcRangeSeekBar);
+        TextView text = (TextView) this.getActivity().findViewById(R.id.rcRangeText);
+        if( pressKeyCount ==0 ) {
+            rcChangeRange = range;
+            debugMsg("rcChange to "+rcChangeRange);
+
+        }
+        if( bar != null )
+            bar.setProgress(rcChangeRange);
+        if( text != null )
+            text.setText("RcRange ("+rcChangeRange+")");
     }
     private rcSeekbarView getSeekBarByRcId(int id){
         rcSeekbarView bar;

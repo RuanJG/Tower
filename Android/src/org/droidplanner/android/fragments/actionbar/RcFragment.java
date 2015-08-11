@@ -1,5 +1,6 @@
 package org.droidplanner.android.fragments.actionbar;
 
+import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -16,6 +17,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.SeekBar;
 import android.widget.Spinner;
 import android.widget.Switch;
@@ -27,6 +29,8 @@ import com.o3dr.android.client.Drone;
 import com.o3dr.services.android.lib.drone.attribute.AttributeEvent;
 import com.o3dr.services.android.lib.drone.attribute.AttributeEventExtra;
 import com.o3dr.services.android.lib.drone.attribute.AttributeType;
+import com.o3dr.services.android.lib.drone.connection.ConnectionParameter;
+import com.o3dr.services.android.lib.drone.connection.ConnectionType;
 import com.o3dr.services.android.lib.drone.property.GuidedState;
 import com.o3dr.services.android.lib.drone.property.State;
 import com.o3dr.services.android.lib.drone.property.VehicleMode;
@@ -45,6 +49,7 @@ import org.droidplanner.android.fragments.control.BaseFlightControlFragment;
 import org.droidplanner.android.fragments.helpers.ApiListenerFragment;
 import org.droidplanner.android.proxy.mission.MissionProxy;
 import org.droidplanner.android.utils.analytics.GAUtils;
+import org.droidplanner.android.utils.prefs.DroidPlannerPrefs;
 import org.droidplanner.android.widgets.rcSeekbarView;
 
 import java.util.Arrays;
@@ -63,6 +68,11 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
     private Spinner rcOutputMode ;
     private int rcChangeRange = 100;
     private int pressKeyCount=0;
+    private VlcVideoFragment mVlcVideo;
+    private Button playBtn ;
+    private EditText videoAddr;
+    //private DroidPlannerApp dpApp;
+    private DroidPlannerPrefs dpPrefs;
 
     IRcOutputListen seekBarListen = new IRcOutputListen() {
         @Override
@@ -150,6 +160,9 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
         keyLockRang[JgRcOutput.PITCHID] = true;
         initRcSeekBar();
 
+        setupVlcVideo();
+
+
         setRcChangeRange(rcChangeRange);
         SeekBar rcRangBar = (SeekBar)this.getActivity().findViewById(R.id.rcRangeSeekBar);
         rcRangBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -171,7 +184,7 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
         rcOutputMode.setOnItemSelectedListener(new Spinner.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                Log.d(TAG,"get position,id="+position+id);
+                Log.d(TAG, "get position,id=" + position + id);
             }
 
             @Override
@@ -179,6 +192,13 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
                 // Do nothing
             }
         });
+
+
+    }
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
     }
 
     @Override
@@ -205,6 +225,7 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
         alertUser("onApiDisconnected");
     }
 
+    boolean isstarted = false;
     @Override
     public void onClick(View v) {
         HitBuilders.EventBuilder eventBuilder = new HitBuilders.EventBuilder()
@@ -220,6 +241,15 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
                     doStop();
                 }
                 break;
+            case R.id.videoPlayBtn:
+                //if( mVlcVideo.isPlaying()){
+                if( isstarted ){
+                    stopPlayVideo();
+                    isstarted = false;
+                }else{
+                    startPlayVideo();
+                    isstarted = true;
+                }
             default:
                 eventBuilder = null;
                 break;
@@ -228,6 +258,69 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
         if (eventBuilder != null) {
             GAUtils.sendEvent(eventBuilder);
         }
+    }
+
+    private void setupVlcVideo()
+    {
+        //mVlcVideo = (VlcVideoFragment) this.getActivity().fragmentManager.findFragmentById(R.id.vlcVideoView);
+        if (mVlcVideo == null) {
+            mVlcVideo  = new VlcVideoFragment();
+            this.getActivity().getSupportFragmentManager().beginTransaction().add(R.id.vlcVideoView, mVlcVideo).commit();
+        }
+        dpPrefs = new DroidPlannerPrefs(this.getContext());
+        playBtn = (Button) this.getActivity().findViewById(R.id.videoPlayBtn);
+        playBtn.setOnClickListener(this);
+        videoAddr = (EditText) this.getActivity().findViewById(R.id.videoAddrText);
+        ;
+        videoAddr.setText(getIpAddr());
+    }
+
+    private String getIpAddr()
+    {
+        final int connectionType = dpPrefs.getConnectionParameterType();
+        String addr;
+        String port;
+
+        switch (connectionType) {
+            case ConnectionType.TYPE_UDP:
+                if(dpPrefs.isUdpPingEnabled()){
+                    addr = dpPrefs.getUdpPingReceiverIp();
+                    port = String.valueOf(dpPrefs.getUdpServerPort());
+                }else {
+                    addr = dpPrefs.getUdpPingReceiverIp();
+                    port = "8554";
+                }
+                break;
+            case ConnectionType.TYPE_TCP:
+                addr = dpPrefs.getTcpServerIp();
+                port = String.valueOf(dpPrefs.getTcpServerPort());
+                break;
+            default:
+                addr = "192.168.2.1";
+                port = "8554";
+                break;
+        }
+        alertUser("connect video frome "+addr +":"+port);
+        return addr;
+    }
+
+    private String getVideoAddr()
+    {
+        String addr;
+        addr = "rtsp://"+videoAddr.getText()+":8554";
+        return addr;
+    }
+
+    private  void startPlayVideo()
+    {
+        mVlcVideo.startPlay(getVideoAddr());
+        debugMsg("play "+getVideoAddr());
+        playBtn.setText("Stop");
+    }
+    private void stopPlayVideo()
+    {
+        mVlcVideo.stopPlay();
+        playBtn.setText("Start");
     }
 
 

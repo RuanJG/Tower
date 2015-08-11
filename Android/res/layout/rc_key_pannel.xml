@@ -81,11 +81,6 @@
         <Space
             android:layout_width="@dimen/rc_key_dp"
             android:layout_height="@dimen/rc_key_dp"/>
-        <org.droidplanner.android.widgets.ThrSeekBar
-            android:layout_width="100dp"
-            android:layout_height="wrap_content"
-            android:id="@+id/thrSeekBar"
-            android:layout_weight="1" />
         <SeekBar
             android:layout_width="100dp"
             android:layout_height="wrap_content"

@@ -14,11 +14,29 @@
         android:layout_height="240dp"
         android:id="@+id/vlcVideoView"
         />
+
         <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         >
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+                <Button
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/videoPlayBtn"
+                    android:text="Start"/>
+                <EditText
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textPostalAddress"
+                    android:ems="10"
+                    android:id="@+id/videoAddrText"
+                    android:layout_gravity="center_horizontal"
+                    android:focusableInTouchMode="true" />
+            </LinearLayout>
         <Space
             android:layout_width="5dp"
             android:layout_height="5dp" />

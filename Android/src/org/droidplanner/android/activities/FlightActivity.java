@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.media.Image;
 import android.os.Bundle;
@@ -222,6 +223,7 @@ public class FlightActivity extends DrawerNavigationUI {
 
 
         //*************************** add by ruan
+        Log.d("ruan",": !!!!!!!!! flight activity oncreat");
         mRcControl = (RcFragment) fragmentManager.findFragmentById(R.id.rcFragment);
         if (mRcControl == null) {
             mRcControl = new RcFragment();
@@ -388,6 +390,10 @@ public class FlightActivity extends DrawerNavigationUI {
     }
 
     //*************** ruan
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        Log.i(TAG,"onconfigureationchange ..");
+    }
     public boolean onKeyDown(int keyCode, KeyEvent event){
         if( mRcControl.doKeyEven(keyCode,event) ){
             return true;

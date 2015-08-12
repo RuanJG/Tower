@@ -144,24 +144,23 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         alertUser("onViewCreated");
-        mSwitch = (Switch) getActivity().findViewById(R.id.rcSwitch);
-        if(mSwitch != null) {
-            mSwitch.setChecked(false);
-            mSwitch.setOnClickListener(this);
-        }else{
-            alertUser("Switch init Error");
+
+        if( mSwitch == null )
+        {
+            mSwitch = (Switch) getActivity().findViewById(R.id.rcSwitch);
+            if(mSwitch != null) {
+                mSwitch.setChecked(false);
+                mSwitch.setOnClickListener(this);
+            }else{
+                alertUser("Switch init Error");
+            }
         }
+        if(mStatusText == null)
+            mStatusText = (TextView) getActivity().findViewById(R.id.statusText);
 
-        mStatusText = (TextView) getActivity().findViewById(R.id.statusText);
-
-        Arrays.fill(keyLockRang, false);
-        keyLockRang[JgRcOutput.ROLLID] = true;
-        keyLockRang[JgRcOutput.YAWID] = true;
-        keyLockRang[JgRcOutput.PITCHID] = true;
         initRcSeekBar();
 
         setupVlcVideo();
-
 
         setRcChangeRange(rcChangeRange);
         SeekBar rcRangBar = (SeekBar)this.getActivity().findViewById(R.id.rcRangeSeekBar);
@@ -170,37 +169,45 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 setRcChangeRange(progress);
             }
+
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
 
             }
+
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
 
             }
         });
 
-        rcOutputMode = (Spinner) getActivity().findViewById(R.id.rcOutputMode);
-        rcOutputMode.setOnItemSelectedListener(new Spinner.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                Log.d(TAG, "get position,id=" + position + id);
-            }
+        if( rcOutputMode == null) {
+            rcOutputMode = (Spinner) getActivity().findViewById(R.id.rcOutputMode);
+            rcOutputMode.setOnItemSelectedListener(new Spinner.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                    Log.d(TAG, "get position,id=" + position + id);
+                }
 
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-                // Do nothing
-            }
-        });
-
-
+                @Override
+                public void onNothingSelected(AdapterView<?> parent) {
+                    // Do nothing
+                }
+            });
+        }
     }
 
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
+        alertUser("Rc Fragment onAttach");
     }
-
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        alertUser("Rc Fragment onDetach");
+        //mListener = null;
+    }
     @Override
     public void onApiConnected() {
         //super.onApiConnected();
@@ -225,7 +232,6 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
         alertUser("onApiDisconnected");
     }
 
-    boolean isstarted = false;
     @Override
     public void onClick(View v) {
         HitBuilders.EventBuilder eventBuilder = new HitBuilders.EventBuilder()
@@ -242,13 +248,10 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
                 }
                 break;
             case R.id.videoPlayBtn:
-                //if( mVlcVideo.isPlaying()){
-                if( isstarted ){
+                if( mVlcVideo.isPlaying()){
                     stopPlayVideo();
-                    isstarted = false;
                 }else{
                     startPlayVideo();
-                    isstarted = true;
                 }
             default:
                 eventBuilder = null;
@@ -264,15 +267,21 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
     {
         //mVlcVideo = (VlcVideoFragment) this.getActivity().fragmentManager.findFragmentById(R.id.vlcVideoView);
         if (mVlcVideo == null) {
+            debugMsg("vlcvideo is null , create new");
             mVlcVideo  = new VlcVideoFragment();
             this.getActivity().getSupportFragmentManager().beginTransaction().add(R.id.vlcVideoView, mVlcVideo).commit();
         }
-        dpPrefs = new DroidPlannerPrefs(this.getContext());
-        playBtn = (Button) this.getActivity().findViewById(R.id.videoPlayBtn);
-        playBtn.setOnClickListener(this);
-        videoAddr = (EditText) this.getActivity().findViewById(R.id.videoAddrText);
-        ;
-        videoAddr.setText(getIpAddr());
+        if( dpPrefs == null)
+            dpPrefs = new DroidPlannerPrefs(this.getContext());
+        if(playBtn == null) {
+            playBtn = (Button) this.getActivity().findViewById(R.id.videoPlayBtn);
+            playBtn.setOnClickListener(this);
+        }
+        if( videoAddr == null) {
+            videoAddr = (EditText) this.getActivity().findViewById(R.id.videoAddrText);
+            videoAddr.setFocusable(false);
+            videoAddr.setText(getIpAddr());
+        }
     }
 
     private String getIpAddr()
@@ -307,8 +316,10 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
     private String getVideoAddr()
     {
         String addr;
-        addr = "rtsp://"+videoAddr.getText()+":8554";
-        return addr;
+        addr = getIpAddr();
+        //addr = "rtsp://"+videoAddr.getText()+":8554";
+        videoAddr.setText(addr);
+        return "rtsp://"+addr+":8554";
     }
 
     private  void startPlayVideo()
@@ -534,6 +545,10 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
             bar.setId(i);
             bar.setRcListen(seekBarListen);
         }
+        Arrays.fill(keyLockRang, false);
+        keyLockRang[JgRcOutput.ROLLID] = true;
+        keyLockRang[JgRcOutput.YAWID] = true;
+        keyLockRang[JgRcOutput.PITCHID] = true;
     }
 
     void setRcChangeRange(int range)

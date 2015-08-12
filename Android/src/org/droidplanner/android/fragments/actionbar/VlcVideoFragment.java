@@ -57,6 +57,7 @@ public class VlcVideoFragment extends Fragment implements SurfaceHolder.Callback
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        debugMsg("onCreated");
         super.onCreate(savedInstanceState);
     }
 
@@ -64,6 +65,7 @@ public class VlcVideoFragment extends Fragment implements SurfaceHolder.Callback
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
+        debugMsg("onCreateView");
         return inflater.inflate(R.layout.fragment_vlc_video, container, false);
 
     }
@@ -132,28 +134,40 @@ public class VlcVideoFragment extends Fragment implements SurfaceHolder.Callback
     }
     private void setupVlcVideoView()
     {
-        mSurfaceView = (SurfaceView) this.getActivity().findViewById(R.id.video);
-        mLoadingView = this.getActivity().findViewById(R.id.video_loading);
-
         try {
-            mMediaPlayer = VLCInstance.getLibVlcInstance(this.getActivity().getApplicationContext());
+            if( mMediaPlayer == null)
+                mMediaPlayer = VLCInstance.getLibVlcInstance(this.getActivity().getApplicationContext());
         } catch (Exception e) {
             alertUser("can not get libvlc");
             mMediaPlayer = null;
         }
 
-        mSurfaceHolder = mSurfaceView.getHolder();
-        mSurfaceHolder.setFormat(PixelFormat.RGBX_8888);
-        mSurfaceHolder.addCallback(this);
+        if( mSurfaceView == null && mMediaPlayer != null ) {
+            mSurfaceView = (SurfaceView) this.getActivity().findViewById(R.id.video);
+            mSurfaceHolder = mSurfaceView.getHolder();
+            mSurfaceHolder.setFormat(PixelFormat.RGBX_8888);
 
-        if( mMediaPlayer != null)
+            mSurfaceHolder.addCallback(this);
+            mSurfaceView.setKeepScreenOn(true);
+                //here maybe run after here
             mMediaPlayer.eventVideoPlayerActivityCreated(true);
+            this.getActivity().setVolumeControlStream(AudioManager.STREAM_MUSIC);
+            EventHandler em = EventHandler.getInstance();
+            em.addHandler(mVlcHandler);
+        }
 
-        EventHandler em = EventHandler.getInstance();
-        em.addHandler(mVlcHandler);
+        if( mLoadingView == null) {
+            mLoadingView = this.getActivity().findViewById(R.id.video_loading);
+            hideLoading();
+        }
 
-        this.getActivity().setVolumeControlStream(AudioManager.STREAM_MUSIC);
-        mSurfaceView.setKeepScreenOn(true);
+        //if( mMediaPlayer != null)
+           // mMediaPlayer.eventVideoPlayerActivityCreated(true);
+
+
+
+
+
         //		mMediaPlayer.setMediaList();
         //		mMediaPlayer.getMediaList().add(new Media(mMediaPlayer, "http://live.3gv.ifeng.com/zixun.m3u8"), false);
         //		mMediaPlayer.playIndex(0);
@@ -221,18 +235,26 @@ public class VlcVideoFragment extends Fragment implements SurfaceHolder.Callback
 
             switch (msg.getData().getInt("event")) {
                 case EventHandler.MediaPlayerTimeChanged:
+                    //debugMsg("MediaPlayerTimeChanged");
                     break;
                 case EventHandler.MediaPlayerPositionChanged:
+                    //debugMsg("MediaPlayerPositionChanged");
                     break;
                 case EventHandler.MediaPlayerPlaying:
-                    mHandler.removeMessages(HANDLER_BUFFER_END);
-                    mHandler.sendEmptyMessage(HANDLER_BUFFER_END);
+                    //debugMsg("MediaPlayerPlaying");
+                    mHandler.removeMessages(HANDLER_BUFFER_START);
+                    mHandler.sendEmptyMessage(HANDLER_BUFFER_START);
                     break;
                 case EventHandler.MediaPlayerBuffering:
+                    mHandler.removeMessages(HANDLER_BUFFER_END);
+                    mHandler.sendEmptyMessage(HANDLER_BUFFER_END);
+                    //debugMsg("MediaPlayerBuffering");
                     break;
                 case EventHandler.MediaPlayerLengthChanged:
+                    //debugMsg("MediaPlayerLengthChanged");
                     break;
                 case EventHandler.MediaPlayerEndReached:
+                    //debugMsg("MediaPlayerEndReached");
                     break;
             }
 

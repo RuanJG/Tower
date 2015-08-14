@@ -219,9 +219,10 @@ public class MediaList {
              * On Nexus S, the decoder latency seems to be about 7 packets.
              */
             options.add(":file-caching=1500");
-            options.add(":network-caching=1500");
+            //options.add(":network-caching=3000");
             options.add(":codec=mediacodec,iomx,all");
         }
+        options.add(":network-caching=100");
         if (noVideo)
             options.add(":no-video");
 

@@ -279,7 +279,7 @@ public class VlcVideoFragment extends Fragment implements SurfaceHolder.Callback
     };
 
     private void showLoading() {
-        mLoadingView.setVisibility(View.VISIBLE);
+        ;//mLoadingView.setVisibility(View.VISIBLE);
     }
 
     private void hideLoading() {

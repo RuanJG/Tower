@@ -124,7 +124,7 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
         }
     };
     protected void alertUser(String message) {
-        Toast.makeText(this.getActivity().getApplicationContext(), TAG+":"+message, Toast.LENGTH_SHORT).show();
+        //Toast.makeText(this.getActivity().getApplicationContext(), TAG+":"+message, Toast.LENGTH_SHORT).show();
         Log.d(TAG, message);
         //debugMsg(message);
     }
@@ -375,8 +375,8 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
         if( isStarted() ){
             mRcOutput.stop();
             //mRcOutput = null;
+            debugMsg("Rc Stop");
         }
-        debugMsg("Rc Stop");
     }
     private  void doInitRcOutput(){
         mRcOutput = new JgRcOutput(this.getContext(),mHandler);
@@ -476,7 +476,7 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
 
         if( pressKeyCount >1
                 && keyCode != mRcOutput.getRcKeyById(JgRcOutput.THRID,JgRcOutput.KeyADDTYPE)
-                && keyCode != mRcOutput.getRcKeyById(JgRcOutput.THRID,JgRcOutput.KeyADDTYPE)  )
+                && keyCode != mRcOutput.getRcKeyById(JgRcOutput.THRID,JgRcOutput.KeySUBTYPE)  )
         { //ignore the long press event
             //if( id != JgRcOutput.THRID ){
             return true;

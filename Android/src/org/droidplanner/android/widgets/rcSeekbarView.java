@@ -37,10 +37,12 @@ public class rcSeekbarView extends View implements View.OnTouchListener{
 
     private double person = 0.5;
     private int mMax=2000,mMin=1000;
-    private int process = 1700;
+    private int process = 1500;
 
     private int padding = 1;
     private int mRcId;
+    private boolean lockValue=false;
+    private int mRcTrimValue=1500;
 
     IRcOutputListen rcListen;
 
@@ -198,6 +200,14 @@ public class rcSeekbarView extends View implements View.OnTouchListener{
         mMin = min;
         invalidate();
     }
+    public void setRcTrimValue(short val)
+    {
+        mRcTrimValue = val;
+    }
+    public  void setLockValue(boolean lock)
+    {
+        lockValue = lock;
+    }
     @Override
     public boolean onTouch(View v, MotionEvent event) {
         int[] position = new int[2];
@@ -215,6 +225,8 @@ public class rcSeekbarView extends View implements View.OnTouchListener{
                 doNotifyRcChanged(mRcId, p);
                 break;
             case MotionEvent.ACTION_UP:
+                if( lockValue )
+                    doNotifyRcChanged(mRcId,mRcTrimValue);
                 //Log.i(TAG, "up in x,y=" +event.getRawX()+","+ event.getRawY() );
                 //Log.i(TAG, "screen in x,y=" +position[0]+","+ position[1] );
                 //Log.e(TAG, "content with=" + this.getWidth());
@@ -233,7 +245,7 @@ public class rcSeekbarView extends View implements View.OnTouchListener{
         rcListen = l;
     }
     private void doNotifyRcChanged(int id, int value){
-        if( rcListen != null && rcListen.doSetRcValue(id, value)) {
+        if( value != process && rcListen != null && rcListen.doSetRcValue(id, value)) {
             setProcess(value);
         }
     }

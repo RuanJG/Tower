@@ -359,6 +359,7 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
         boolean ret;
         if( isReady() ){
             if( mRcOutput.isReady() && mRcOutput.start() ){
+                setRcSeekBarTrimValue();
                 ret = true;
             }else{
                 //mRcOutput = null;
@@ -381,7 +382,7 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
     private  void doInitRcOutput(){
         mRcOutput = new JgRcOutput(this.getContext(),mHandler);
         mRcOutput.setmMode(JgRcOutput.SOFTWAREMODE);
-        mRcOutput.setRate(50);
+        mRcOutput.setRate(2);
         //mRcOutput.setDrone(getDrone());
         //mRcOutput.start();
     }
@@ -473,10 +474,9 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
             debugMsg("a key up" + keyCode);
         }
 
-
-        if( pressKeyCount >1
-                && keyCode != mRcOutput.getRcKeyById(JgRcOutput.THRID,JgRcOutput.KeyADDTYPE)
-                && keyCode != mRcOutput.getRcKeyById(JgRcOutput.THRID,JgRcOutput.KeySUBTYPE)  )
+        if( pressKeyCount >1 )
+                //&& keyCode != mRcOutput.getRcKeyById(JgRcOutput.THRID,JgRcOutput.KeyADDTYPE)
+                //&& keyCode != mRcOutput.getRcKeyById(JgRcOutput.THRID,JgRcOutput.KeySUBTYPE)  )
         { //ignore the long press event
             //if( id != JgRcOutput.THRID ){
             return true;
@@ -540,15 +540,18 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
 
     private void initRcSeekBar(){
         rcSeekbarView bar;
-        for( int i=0; i<= JgRcOutput.CHN8ID; i++){
-            bar = getSeekBarByRcId(i);
-            bar.setId(i);
-            bar.setRcListen(seekBarListen);
-        }
         Arrays.fill(keyLockRang, false);
         keyLockRang[JgRcOutput.ROLLID] = true;
         keyLockRang[JgRcOutput.YAWID] = true;
         keyLockRang[JgRcOutput.PITCHID] = true;
+
+        for( int i=0; i<= JgRcOutput.CHN8ID; i++){
+            bar = getSeekBarByRcId(i);
+            bar.setId(i);
+            bar.setLockValue(keyLockRang[i]);
+            bar.setRcListen(seekBarListen);
+        }
+
     }
 
     void setRcChangeRange(int range)
@@ -606,7 +609,16 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
             bar.setProcess(mRcOutput.getRcById(id));
         }
     }
-
+private void setRcSeekBarTrimValue()
+{
+    rcSeekbarView bar;
+    for( int i=0; i<= JgRcOutput.CHN8ID; i++){
+        bar = getSeekBarByRcId(i);
+        bar.setRcTrimValue(mRcOutput.getDefalutRcById(i));
+        bar.setMinMax(mRcOutput.getDefalutMinRcById(i),mRcOutput.getDefalutMaxRcById(i));
+        //bar.setLockValue(keyLockRang[i]);
+    }
+}
 
     private Handler mHandler = new Handler(){
         public void handleMessage(Message msg) {

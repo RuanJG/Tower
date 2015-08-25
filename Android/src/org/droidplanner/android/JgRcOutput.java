@@ -68,6 +68,8 @@ public class JgRcOutput{
     public static  final int KeySUBTYPE = 1;
     private int [][] mKeyMap = new int[8][2]; //[id][KeyAddTYPE]
 
+    private int mRcMask=0;
+
     public  JgRcOutput(Drone drone, Context context, Handler handler){
         mContext = context;
         mDrone = drone;
@@ -125,6 +127,7 @@ public class JgRcOutput{
     }
 
     //***************************  Start Stop
+    private  int times=0;
     public boolean start(){
         if( isStarted() )
             return true;
@@ -134,16 +137,24 @@ public class JgRcOutput{
             sendRcMsg();
             sendRcMsg();
             sendRcMsg();
+            mRcMask = 0;
             setDefaultRc();
             mTask = Executors.newScheduledThreadPool(5);
             mTask.scheduleWithFixedDelay(new Runnable() {
                 @Override
                 public void run() {
                     if( isReady() ) {
-                        sendRcMsg();
-                        if( isRcChanged()) {
+                        if( false && isRcChanged()) {
+                            sendRcMsg();
                             onRcChanged(ALLID);
                             setRcStatusChanged(false);
+                            times = 0;
+                        }else {
+                            times++;
+                            if( times *getDelayMs() >= 500) {
+                                sendRcMsg();
+                                times = 0;
+                            }
                         }
                     }else{
                         sendErrorMessageToClient(DRONE_ERROR);
@@ -174,7 +185,7 @@ public class JgRcOutput{
     //******************** loop speed
     private  int getRate(){ return mRate; }
     public boolean setRate(int rate){
-        if( rate >1 && rate < 500) {
+        if( rate >=1 && rate < 500) {
             mRate = rate;
             return true;
         }else{
@@ -185,7 +196,7 @@ public class JgRcOutput{
         //SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(parrentContext);
         //int rate = Integer.parseInt(prefs.getString("pref_mavlink_stream_rate_RC_override", "0"));
         int rate = getRate();
-        if ((rate > 1) & (rate < 500)) {
+        if ((rate >= 1) & (rate < 500)) {
             return 1000 / rate;
         } else {
             return 20;
@@ -194,14 +205,22 @@ public class JgRcOutput{
 
     //***************************  Send rc Message
     private  void updateRcMsg(){
-        rcMsg.chan1_raw = rcOutputs[0];
-        rcMsg.chan2_raw = rcOutputs[1];
-        rcMsg.chan3_raw = rcOutputs[2];
-        rcMsg.chan4_raw = rcOutputs[3];
-        rcMsg.chan5_raw = rcOutputs[4];
-        rcMsg.chan6_raw = rcOutputs[5];
-        rcMsg.chan7_raw = rcOutputs[6];
-        rcMsg.chan8_raw = rcOutputs[7];
+        if( (mRcMask & 1<<0) != 0 )
+            rcMsg.chan1_raw = rcOutputs[0];
+        if( (mRcMask & 1<<1) != 0 )
+            rcMsg.chan2_raw = rcOutputs[1];
+        if( (mRcMask & 1<<2) != 0 )
+            rcMsg.chan3_raw = rcOutputs[2];
+        if( (mRcMask & 1<<3) != 0 )
+            rcMsg.chan4_raw = rcOutputs[3];
+        if( (mRcMask & 1<<4) != 0 )
+            rcMsg.chan5_raw = rcOutputs[4];
+        if( (mRcMask & 1<<5) != 0 )
+            rcMsg.chan6_raw = rcOutputs[5];
+        if( (mRcMask & 1<<6) != 0 )
+            rcMsg.chan7_raw = rcOutputs[6];
+        if( (mRcMask & 1<<7) != 0 )
+            rcMsg.chan8_raw = rcOutputs[7];
         //rcMsg.target_system =
     }
     private boolean sendRc(){
@@ -215,7 +234,7 @@ public class JgRcOutput{
             return sendRc() ;
         }else
             debugMsg("sendRcMsg false , no Ready");
-
+        debugMsg("sendRcMsg .....");
         return false;
     }
 
@@ -342,6 +361,18 @@ public class JgRcOutput{
         if( id >= ALLID) return 0;
         return rcOutputs[id];
     }
+    public short getDefalutRcById(int id){
+        if( id >= ALLID) return 0;
+        return rcParamValue[id][1];
+    }
+    public short getDefalutMaxRcById(int id){
+        if( id >= ALLID) return 0;
+        return rcParamValue[id][2];
+    }
+    public short getDefalutMinRcById(int id){
+        if( id >= ALLID) return 0;
+        return rcParamValue[id][0];
+    }
     public boolean setRcById(int id, short rc){
         if( id >= ALLID) return false;
 
@@ -354,7 +385,8 @@ public class JgRcOutput{
             //return false;
         }
         setRcStatusChanged(true);
-        //sendRcMsg();
+        mRcMask |= 1<<id;
+        sendRcMsg();
         //onRcChanged(ALLID);
         return true;
     }

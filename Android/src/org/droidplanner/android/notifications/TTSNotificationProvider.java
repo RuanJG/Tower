@@ -313,6 +313,8 @@ public class TTSNotificationProvider implements OnInitListener,
 			}
 
 			if (ttsLanguage == null || tts.isLanguageAvailable(ttsLanguage) == TextToSpeech.LANG_NOT_SUPPORTED) {
+				ttsLanguage = Locale.US;
+				/*
 				final List<Locale> availableLanguages = new ArrayList<>(tts.getAvailableLanguages());
 
 				if(!availableLanguages.isEmpty()) {
@@ -322,6 +324,7 @@ public class TTSNotificationProvider implements OnInitListener,
 				else {
 					ttsLanguage = Locale.US;
 				}
+				*/
 			}
 
 			if(tts.isLanguageAvailable(ttsLanguage) == TextToSpeech.LANG_MISSING_DATA){

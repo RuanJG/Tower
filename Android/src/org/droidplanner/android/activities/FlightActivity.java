@@ -506,6 +506,8 @@ public class FlightActivity extends DrawerNavigationUI {
      * binary is installed and up to date.
      */
     private void setupMapFragment() {
+        mapFragment = null;
+        /*
         if (mapFragment == null && isGooglePlayServicesValid(true)) {
             mapFragment = (FlightMapFragment) fragmentManager.findFragmentById(R.id.flight_map_fragment);
             if (mapFragment == null) {
@@ -513,18 +515,20 @@ public class FlightActivity extends DrawerNavigationUI {
                 fragmentManager.beginTransaction().add(R.id.flight_map_fragment, mapFragment).commit();
             }
         }
+        */
     }
 
     public void setGuidedClickListener(FlightMapFragment.OnGuidedClickListener listener){
-        mapFragment.setGuidedClickListener(listener);
+        if (mapFragment != null) mapFragment.setGuidedClickListener(listener);
     }
 
     public void addMapMarkerProvider(DroneMap.MapMarkerProvider provider){
-        mapFragment.addMapMarkerProvider(provider);
+        if (mapFragment != null)
+            mapFragment.addMapMarkerProvider(provider);
     }
 
     public void removeMapMarkerProvider(DroneMap.MapMarkerProvider provider){
-        mapFragment.removeMapMarkerProvider(provider);
+        if (mapFragment != null) mapFragment.removeMapMarkerProvider(provider);
     }
 
     @Override

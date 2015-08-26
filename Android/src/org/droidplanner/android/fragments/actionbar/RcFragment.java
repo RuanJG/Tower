@@ -66,7 +66,7 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
     private static boolean []keyLockRang=new boolean[8];
 
     private Spinner rcOutputMode ;
-    private int rcChangeRange = 100;
+    private int rcChangeRange = 30;
     private int pressKeyCount=0;
     private VlcVideoFragment mVlcVideo;
     private Button playBtn ;
@@ -281,6 +281,7 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
             videoAddr = (EditText) this.getActivity().findViewById(R.id.videoAddrText);
             videoAddr.setFocusable(false);
             videoAddr.setText(getIpAddr());
+            videoAddr.setVisibility(View.GONE);
         }
     }
 
@@ -566,7 +567,7 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
         if( bar != null )
             bar.setProgress(rcChangeRange);
         if( text != null )
-            text.setText("RcRange ("+rcChangeRange+")");
+            text.setText("diff("+rcChangeRange+")");
     }
     private rcSeekbarView getSeekBarByRcId(int id){
         rcSeekbarView bar;

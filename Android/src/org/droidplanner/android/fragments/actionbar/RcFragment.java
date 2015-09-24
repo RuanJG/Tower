@@ -6,6 +6,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Color;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -54,8 +57,13 @@ import org.droidplanner.android.widgets.rcSeekbarView;
 
 import java.util.Arrays;
 
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 
-public class RcFragment  extends ApiListenerFragment  implements View.OnClickListener {
+
+public class RcFragment  extends ApiListenerFragment  implements View.OnClickListener ,SensorEventListener {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String TAG = RcFragment.class.getSimpleName();
@@ -73,6 +81,10 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
     private EditText videoAddr;
     //private DroidPlannerApp dpApp;
     private DroidPlannerPrefs dpPrefs;
+
+    private SensorManager mSensorMgr = null;
+    private Sensor mAccelSensor = null;
+    private Sensor mCampassSensor = null;
 
     IRcOutputListen seekBarListen = new IRcOutputListen() {
         @Override
@@ -201,12 +213,14 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         alertUser("Rc Fragment onAttach");
+        setupAccelSensor();
     }
     @Override
     public void onDetach() {
         super.onDetach();
         alertUser("Rc Fragment onDetach");
         //mListener = null;
+        releaseAccelSensor();
     }
     @Override
     public void onApiConnected() {
@@ -263,6 +277,26 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
         }
     }
 
+    private void setupAccelSensor()
+    {
+        mSensorMgr = (SensorManager) this.getActivity().getSystemService(this.getContext().SENSOR_SERVICE);
+        mAccelSensor = mSensorMgr.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        mCampassSensor = mSensorMgr.getDefaultSensor(Sensor.TYPE_ORIENTATION);
+        // 注册listener，第三个参数是检测的精确度
+        //SENSOR_DELAY_FASTEST 最灵敏 因为太快了没必要使用
+        //SENSOR_DELAY_GAME    游戏开发中使用
+        //SENSOR_DELAY_NORMAL  正常速度
+        //SENSOR_DELAY_UI          最慢的速度
+        if( mSensorMgr!= null && mAccelSensor != null)
+            mSensorMgr.registerListener(this, mAccelSensor, SensorManager.SENSOR_DELAY_UI);
+        if( mSensorMgr!= null && mCampassSensor != null)
+            mSensorMgr.registerListener(this, mCampassSensor, SensorManager.SENSOR_DELAY_UI);
+    }
+    private void releaseAccelSensor()
+    {
+        if( mSensorMgr!= null && mAccelSensor != null)
+            mSensorMgr.unregisterListener(this);
+    }
     private void setupVlcVideo()
     {
         //mVlcVideo = (VlcVideoFragment) this.getActivity().fragmentManager.findFragmentById(R.id.vlcVideoView);
@@ -646,4 +680,29 @@ private void setRcSeekBarTrimValue()
 
 
 
+    //########################### sensor
+    float  mGX ;
+    float  mGY;
+    float  mGZ ;
+    float degree ;
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER)
+        {
+            mGX = event.values[SensorManager.DATA_X];
+            mGY= event.values[SensorManager.DATA_Y];
+            mGZ = event.values[SensorManager.DATA_Z];
+
+        }else if(event.sensor.getType() == Sensor.TYPE_ORIENTATION)
+        {
+            degree = event.values[0];
+        }
+        mStatusText.setText(mGX+","+mGY+","+mGZ+"; c: "+degree);
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+        mStatusText.setText("gsensor: onAccuracyChanged");
+    }
+    //########################### sensor end
 }

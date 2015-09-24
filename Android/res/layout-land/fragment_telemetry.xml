@@ -205,7 +205,7 @@
                 android:layout_below="@+id/climbRateValue"
                 android:text="@string/climb_rate_label"
                 android:textColor="@color/climb_rate_label"
-                android:layout_marginRight="8dp" />
+                android:layout_marginRight="1dp" />
             <TextView
                 android:id="@+id/climbRateValue"
                 style="@style/largeTelemetryText"

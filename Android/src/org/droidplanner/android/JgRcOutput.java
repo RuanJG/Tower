@@ -137,7 +137,7 @@ public class JgRcOutput{
             sendRcMsg();
             sendRcMsg();
             sendRcMsg();
-            mRcMask = 0;
+            mRcMask = 0xffff;
             setDefaultRc();
             mTask = Executors.newScheduledThreadPool(5);
             mTask.scheduleWithFixedDelay(new Runnable() {
@@ -169,14 +169,17 @@ public class JgRcOutput{
         return true;
     }
     public  boolean stop(){
-        initRcOutput();
+        //initRcOutput();
+        Arrays.fill(rcOutputs, INVALID_RC_VALUE);
+        setRcStatus(0);
         if( isStarted() ) {
             mTask.shutdownNow();
             mTask = null;
-            sendRcMsg();
-            sendRcMsg();
-            sendRcMsg();
+            updateRcMsg();
+            sendRc() ;
+            sendRc() ;
         }
+        onRcChanged(ALLID);
         return true;
     }
 
@@ -253,6 +256,7 @@ public class JgRcOutput{
         debugMsg("initRcOutput !!");
     }
     private void initKeyMap(){
+        /* the key for long jostick
         mKeyMap[ROLLID][KeyADDTYPE] = KeyEvent.KEYCODE_3;
         mKeyMap[ROLLID][KeySUBTYPE] = KeyEvent.KEYCODE_1;
 
@@ -276,6 +280,33 @@ public class JgRcOutput{
 
         mKeyMap[CHN8ID][KeyADDTYPE] = KeyEvent.KEYCODE_M;
         mKeyMap[CHN8ID][KeySUBTYPE] = KeyEvent.KEYCODE_N;
+        */
+
+        // jodisk for usb
+        mKeyMap[ROLLID][KeyADDTYPE] = KeyEvent.KEYCODE_BUTTON_1;
+        mKeyMap[ROLLID][KeySUBTYPE] = KeyEvent.KEYCODE_BUTTON_3;
+
+        mKeyMap[PITCHID][KeyADDTYPE] = KeyEvent.KEYCODE_BUTTON_2;
+        mKeyMap[PITCHID][KeySUBTYPE] = KeyEvent.KEYCODE_BUTTON_4;
+
+        mKeyMap[THRID][KeyADDTYPE] = KeyEvent.KEYCODE_DPAD_UP;
+        mKeyMap[THRID][KeySUBTYPE] = KeyEvent.KEYCODE_DPAD_DOWN;
+
+        mKeyMap[YAWID][KeyADDTYPE] = KeyEvent.KEYCODE_DPAD_RIGHT;
+        mKeyMap[YAWID][KeySUBTYPE] = KeyEvent.KEYCODE_DPAD_LEFT;
+
+        mKeyMap[CHN5ID][KeyADDTYPE] = KeyEvent.KEYCODE_6;
+        mKeyMap[CHN5ID][KeySUBTYPE] = KeyEvent.KEYCODE_5;
+
+        mKeyMap[CHN6ID][KeyADDTYPE] = KeyEvent.KEYCODE_8;
+        mKeyMap[CHN6ID][KeySUBTYPE] = KeyEvent.KEYCODE_7;
+
+        mKeyMap[CHN7ID][KeyADDTYPE] = KeyEvent.KEYCODE_9;
+        mKeyMap[CHN7ID][KeySUBTYPE] = KeyEvent.KEYCODE_0;
+
+        mKeyMap[CHN8ID][KeyADDTYPE] = KeyEvent.KEYCODE_M;
+        mKeyMap[CHN8ID][KeySUBTYPE] = KeyEvent.KEYCODE_N;
+        //
     }
     private void updateParamRc(){
         int i;

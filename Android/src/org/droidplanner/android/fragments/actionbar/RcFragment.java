@@ -130,7 +130,7 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
     }
     private  void debugMsg(String msg){
         Log.d(TAG, msg);
-        mStatusText.setText(msg);
+        //mStatusText.setText(msg);
     }
 
 
@@ -469,10 +469,12 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
             pressKeyCount = pressKeyCount>1?pressKeyCount:1+pressKeyCount;
             press = true;
             debugMsg("a key down:" + keyCode);
+            mStatusText.setText("a key down:" + keyCode);
         }else {
             pressKeyCount = 0;
             press = false;
             debugMsg("a key up" + keyCode);
+            mStatusText.setText("a key up:" + keyCode);
         }
 
         if( pressKeyCount >1 )

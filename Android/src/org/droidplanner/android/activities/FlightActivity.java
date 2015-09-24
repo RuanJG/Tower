@@ -398,14 +398,16 @@ public class FlightActivity extends DrawerNavigationUI {
         if( mRcControl.doKeyEven(keyCode,event) ){
             return true;
         }else{
-            return super.onKeyDown(keyCode,event);
+            //return super.onKeyDown(keyCode,event);
+            return true;
         }
     }
     public boolean onKeyUp(int keyCode, KeyEvent event){
         if( mRcControl.doKeyEven(keyCode,event) ){
             return true;
         }else{
-            return super.onKeyUp(keyCode, event);
+            //return super.onKeyUp(keyCode, event);
+            return true;
         }
     }
     //******************* end

@@ -40,6 +40,18 @@
     <uses-feature
         android:glEsVersion="0x00020000"
         android:required="true"/>
+<!-- ruan add for gaode map -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_CONFIGURATION" />
+    <uses-permission android:name="android.permission.WRITE_SETTINGS" />
+    <!-- ruan add for gaode map -->
 
     <application
         android:name=".DroidPlannerApp"
@@ -58,6 +70,12 @@
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version"/>-->
+
+        <!-- ruan add for gaode map -->
+        <meta-data
+            android:name="com.amap.api.v2.apikey"
+            android:value="4E:0B:5A:93:C1:58:91:8F:05:6A:D2:7E:E5:20:64:84:42:07:0C:09"/>
+        <!-- ruan add for gaode map -->
 
         <activity
             android:name=".activities.AccountActivity"

@@ -1,6 +1,7 @@
 package org.droidplanner.android.maps.providers.google_map;
 
 import org.droidplanner.android.R;
+import org.droidplanner.android.maps.DPMap;
 import org.droidplanner.android.maps.providers.DPMapProvider;
 import org.droidplanner.android.maps.providers.MapProviderPreferences;
 
@@ -43,6 +44,7 @@ public class GoogleMapProviderPreferences extends MapProviderPreferences {
 
 	@Override
 	public DPMapProvider getMapProvider() {
-		return DPMapProvider.GOOGLE_MAP;
+		//return DPMapProvider.GOOGLE_MAP;
+		return DPMapProvider.GAODE_AMAP;
 	}
 }

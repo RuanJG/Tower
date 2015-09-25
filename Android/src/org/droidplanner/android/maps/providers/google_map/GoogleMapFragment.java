@@ -383,7 +383,8 @@ public class GoogleMapFragment extends SupportMapFragment implements DPMap, Goog
 
     @Override
     public DPMapProvider getProvider() {
-        return DPMapProvider.GOOGLE_MAP;
+        return DPMapProvider.GAODE_AMAP;
+        //return DPMapProvider.GOOGLE_MAP;
     }
 
     @Override

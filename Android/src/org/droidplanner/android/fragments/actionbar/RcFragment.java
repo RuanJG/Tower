@@ -221,6 +221,9 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
         alertUser("Rc Fragment onDetach");
         //mListener = null;
         releaseAccelSensor();
+        if( mVlcVideo != null && mVlcVideo.isPlaying()) {
+            stopPlayVideo();
+        }
     }
     @Override
     public void onApiConnected() {
@@ -282,11 +285,11 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
         mSensorMgr = (SensorManager) this.getActivity().getSystemService(this.getContext().SENSOR_SERVICE);
         mAccelSensor = mSensorMgr.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         mCampassSensor = mSensorMgr.getDefaultSensor(Sensor.TYPE_ORIENTATION);
-        // 注册listener，第三个参数是检测的精确度
-        //SENSOR_DELAY_FASTEST 最灵敏 因为太快了没必要使用
-        //SENSOR_DELAY_GAME    游戏开发中使用
-        //SENSOR_DELAY_NORMAL  正常速度
-        //SENSOR_DELAY_UI          最慢的速度
+        //listener
+        //SENSOR_DELAY_FASTEST
+        //SENSOR_DELAY_GAME
+        //SENSOR_DELAY_NORMAL
+        //SENSOR_DELAY_UI   slowest
         if( mSensorMgr!= null && mAccelSensor != null)
             mSensorMgr.registerListener(this, mAccelSensor, SensorManager.SENSOR_DELAY_UI);
         if( mSensorMgr!= null && mCampassSensor != null)
@@ -697,12 +700,12 @@ private void setRcSeekBarTrimValue()
         {
             degree = event.values[0];
         }
-        mStatusText.setText(mGX+","+mGY+","+mGZ+"; c: "+degree);
+        //mStatusText.setText(mGX+","+mGY+","+mGZ+"; c: "+degree);
     }
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
-        mStatusText.setText("gsensor: onAccuracyChanged");
+        //mStatusText.setText("gsensor: onAccuracyChanged");
     }
     //########################### sensor end
 }

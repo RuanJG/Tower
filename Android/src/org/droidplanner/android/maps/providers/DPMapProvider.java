@@ -1,8 +1,13 @@
 package org.droidplanner.android.maps.providers;
 
+import android.util.Log;
+
 import org.droidplanner.android.maps.DPMap;
+import org.droidplanner.android.maps.providers.gaode_amap.AMapFragment;
+import org.droidplanner.android.maps.providers.gaode_amap.AMapProviderPreferences;
 import org.droidplanner.android.maps.providers.google_map.GoogleMapFragment;
 import org.droidplanner.android.maps.providers.google_map.GoogleMapProviderPreferences;
+
 
 /**
  * Contains a listing of the various map providers supported, and implemented in
@@ -12,6 +17,7 @@ public enum DPMapProvider {
 	/**
 	 * Provide access to google map v2. Requires the google play services.
 	 */
+	/*
 	GOOGLE_MAP {
 		@Override
 		public DPMap getMapFragment() {
@@ -21,6 +27,19 @@ public enum DPMapProvider {
 		@Override
 		public MapProviderPreferences getMapProviderPreferences() {
 			return new GoogleMapProviderPreferences();
+		}
+	};
+	*/
+	GAODE_AMAP {
+		@Override
+		public DPMap getMapFragment() {
+			Log.d("Ruan", "xxxxxxxxxxxxxxxxxx");
+			return new AMapFragment();
+		}
+
+		@Override
+		public MapProviderPreferences getMapProviderPreferences() {
+			return new AMapProviderPreferences();
 		}
 	};
 
@@ -56,5 +75,6 @@ public enum DPMapProvider {
 	/**
 	 * By default, Google Map is the map provider.
 	 */
-	public static final DPMapProvider DEFAULT_MAP_PROVIDER = GOOGLE_MAP;
+	//public static final DPMapProvider DEFAULT_MAP_PROVIDER = GOOGLE_MAP;
+	public static final DPMapProvider DEFAULT_MAP_PROVIDER = GAODE_AMAP;
 }

@@ -8,7 +8,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Configuration;
 import android.graphics.Color;
-import android.media.Image;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.FragmentManager;
@@ -21,7 +20,6 @@ import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.ImageButton;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
@@ -33,16 +31,14 @@ import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
 import org.droidplanner.android.R;
 import org.droidplanner.android.fragments.DroneMap;
-import org.droidplanner.android.fragments.actionbar.RcFragment;
+import org.droidplanner.android.ruan.RcFragment;
 import org.droidplanner.android.fragments.control.FlightControlManagerFragment;
 import org.droidplanner.android.fragments.FlightMapFragment;
 import org.droidplanner.android.fragments.TelemetryFragment;
-import org.droidplanner.android.fragments.helpers.ApiListenerFragment;
 import org.droidplanner.android.fragments.mode.FlightModePanel;
 import org.droidplanner.android.utils.prefs.AutoPanMode;
 
 import java.util.concurrent.atomic.AtomicBoolean;
-import android.support.v4.app.Fragment;
 
 public class FlightActivity extends DrawerNavigationUI {
 

@@ -22,6 +22,7 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.MAVLink.MAVLinkPacket;
 import com.google.android.gms.analytics.HitBuilders;
 import com.o3dr.android.client.Drone;
 import com.o3dr.services.android.lib.drone.attribute.AttributeEvent;
@@ -34,6 +35,8 @@ import org.droidplanner.android.utils.prefs.DroidPlannerPrefs;
 
 import java.util.Arrays;
 
+import org.ruan.connection.BluetoothConnection;
+import org.ruan.connection.MavLinkConnectionListener;
 
 public class RcFragment  extends ApiListenerFragment  implements View.OnClickListener {
     // TODO: Rename parameter arguments, choose names that match
@@ -60,6 +63,7 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
     private final static String CameraJostickBtName="autopilot";
     public final static String CopterJostickName="copterJostickName";
     public final static String CameraJostickName="cameraJostickName";
+
 
     IRcOutputListen seekBarListen = new IRcOutputListen() {
         @Override
@@ -631,6 +635,12 @@ private void setRcSeekBarTrimValue()
         }
     };
 
+
+
+
+
+    //########################## ble function
+    //### find devices
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (requestCode) {
@@ -672,10 +682,38 @@ private void setRcSeekBarTrimValue()
         //i.putExtra("uAge", (short)18);
         startActivityForResult(i, FindBluetoothDevicesActivity.REQUEST_BLE_ADDR_CODE);
     }
+    //##### connect ble
+    MavLinkConnectionListener mBlelistener=new MavLinkConnectionListener() {
+        @Override
+        public void onStartingConnection() {
+
+        }
+
+        @Override
+        public void onConnect(long connectionTime) {
+
+        }
+
+        @Override
+        public void onReceivePacket(MAVLinkPacket packet) {
+
+        }
+
+        @Override
+        public void onDisconnect(long disconnectionTime) {
+
+        }
+
+        @Override
+        public void onComError(String errMsg) {
+
+        }
+    };
+
 
     private void doConnectBtJostick()
     {
-
+        ;//AndroidMavLinkConnection conn = mavConnections.get(connParams.getUniqueId());
     }
 
 }

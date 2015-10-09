@@ -1,2 +1,4 @@
 //Android projects
-include ':Android'
+include ':Android', ':ruanconnectionlibrary', ':Mavlink', ':UsbSerialLibrary', ':'
+project(':Mavlink').projectDir = new File('ruanconnectionlibrary/dependencyLibs/Mavlink')
+project(':UsbSerialLibrary').projectDir = new File('ruanconnectionlibrary/dependencyLibs/usb-serial-for-android/UsbSerialLibrary')

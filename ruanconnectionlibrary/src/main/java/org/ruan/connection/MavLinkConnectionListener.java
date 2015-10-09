@@ -1,6 +1,6 @@
 package org.ruan.connection;
 
-import com.MAVLink.MAVLinkPacket;
+import com.MAVLinks.MAVLinkPacket;
 
 /**
  * Provides updates about the mavlink connection.

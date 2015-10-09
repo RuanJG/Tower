@@ -1,7 +1,7 @@
 package org.ruan.connection;
 
-import com.MAVLink.MAVLinkPacket;
-import com.MAVLink.Parser;
+import com.MAVLinks.MAVLinkPacket;
+import com.MAVLinks.Parser;
 
 
 import java.io.BufferedOutputStream;

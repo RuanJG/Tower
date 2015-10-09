@@ -1,6 +1,7 @@
 apply plugin: 'com.android.application'
 
 dependencies {
+    compile project(':ruanconnectionlibrary')
     compile 'com.google.android.gms:play-services-maps:7.3.0'
     compile 'com.google.android.gms:play-services-location:7.3.0'
     compile 'com.google.android.gms:play-services-analytics:7.3.0'
@@ -13,13 +14,11 @@ dependencies {
     compile 'me.grantland:autofittextview:0.2.1'
     compile(name: 'shimmer-android-release', ext: 'aar')
     compile files('libs/droneapi-java-0.3-SNAPSHOT.jar')
-    compile files('libs/j2xx.jar')
     compile files('libs/protobuf-java-2.5.0.jar')
     compile files('libs/jeromq-0.3.4.jar')
     compile files('libs/sius-0.3.2-SNAPSHOT.jar')
     compile 'com.squareup.okhttp:okhttp:2.3.0'
     compile 'com.squareup.okhttp:okhttp-urlconnection:2.3.0'
-    compile project(':ruanconnectionlibrary')
 }
 
 android {

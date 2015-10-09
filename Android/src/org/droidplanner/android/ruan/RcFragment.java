@@ -22,7 +22,7 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.MAVLink.MAVLinkPacket;
+import com.MAVLinks.MAVLinkPacket;
 import com.google.android.gms.analytics.HitBuilders;
 import com.o3dr.android.client.Drone;
 import com.o3dr.services.android.lib.drone.attribute.AttributeEvent;
@@ -36,6 +36,7 @@ import org.droidplanner.android.utils.prefs.DroidPlannerPrefs;
 import java.util.Arrays;
 
 import org.ruan.connection.BluetoothConnection;
+import org.ruan.connection.MavLinkConnection;
 import org.ruan.connection.MavLinkConnectionListener;
 
 public class RcFragment  extends ApiListenerFragment  implements View.OnClickListener {
@@ -242,8 +243,14 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
                 }else{
                     startPlayVideo();
                 }
+                break;
             case R.id.buttonBle:
-                findBleJostick();
+                if( isCopterJostickDisconnected() ){
+                    findAndConnectBleJostick();
+                }else{
+                    doCopterJostickDisconnect();
+                }
+                break;
             default:
                 eventBuilder = null;
                 break;
@@ -640,6 +647,21 @@ private void setRcSeekBarTrimValue()
 
 
     //########################## ble function
+    //#### ui even
+    private void onBleConnected()
+    {
+        Button btn = (Button) this.getActivity().findViewById(R.id.buttonBle);
+        if( btn != null ){
+            btn.setText("DisConnect");
+        }
+    }
+    private void onBleDisconnected()
+    {
+        Button btn = (Button) this.getActivity().findViewById(R.id.buttonBle);
+        if( btn != null ){
+            btn.setText("Connect");
+        }
+    }
     //### find devices
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -656,7 +678,7 @@ private void setRcSeekBarTrimValue()
                         mCameraJostickBtAdress = data.getStringExtra(CopterJostickName);
                         mCopterJostickBtAdress = data.getStringExtra(CameraJostickName);
                         alertUser("find the ble jostick: " + mCopterJostickBtAdress + "," + mCameraJostickBtAdress);
-                        doConnectBtJostick();
+                        doCopterJostickConnect();
                     }else{
                         mCameraJostickBtAdress= null;
                         mCopterJostickBtAdress = null;
@@ -672,7 +694,7 @@ private void setRcSeekBarTrimValue()
         }
     }
 
-    private void findBleJostick()
+    private void findAndConnectBleJostick()
     {
         Intent i;
         i = new Intent(this.getContext(),FindBluetoothDevicesActivity.class);
@@ -683,37 +705,60 @@ private void setRcSeekBarTrimValue()
         startActivityForResult(i, FindBluetoothDevicesActivity.REQUEST_BLE_ADDR_CODE);
     }
     //##### connect ble
+    private  BluetoothConnection mBleConnect;
     MavLinkConnectionListener mBlelistener=new MavLinkConnectionListener() {
         @Override
         public void onStartingConnection() {
-
+            debugMsg("onStartingConnection");
         }
 
         @Override
         public void onConnect(long connectionTime) {
-
+            debugMsg("onConnect:"+connectionTime);
+            onBleConnected();
         }
 
         @Override
         public void onReceivePacket(MAVLinkPacket packet) {
-
+            debugMsg("onReceivePacket");
         }
 
         @Override
         public void onDisconnect(long disconnectionTime) {
-
+            debugMsg("onDisconnect:"+disconnectionTime);
+            onBleDisconnected();
         }
 
         @Override
         public void onComError(String errMsg) {
-
+            debugMsg("onComError:"+errMsg);
         }
     };
 
-
-    private void doConnectBtJostick()
+    private boolean isCopterJostickDisconnected()
     {
-        ;//AndroidMavLinkConnection conn = mavConnections.get(connParams.getUniqueId());
+        return mBleConnect.getConnectionStatus() == MavLinkConnection.MAVLINK_DISCONNECTED;
+    }
+
+    private void doCopterJostickConnect()
+    {
+        if( mCopterJostickBtAdress != null){
+            mBleConnect = new BluetoothConnection(this.getContext(), mCopterJostickBtAdress);
+            mBleConnect.addMavLinkConnectionListener(CopterJostickName, mBlelistener);
+            if (mBleConnect.getConnectionStatus() == MavLinkConnection.MAVLINK_DISCONNECTED) {
+                mBleConnect.connect();
+            }
+        }
+    }
+    private void doCopterJostickDisconnect()
+    {
+        if( mBleConnect == null) return;
+
+        mBleConnect.removeMavLinkConnectionListener(CopterJostickName);
+        if (mBleConnect.getMavLinkConnectionListenersCount() == 0 && mBleConnect.getConnectionStatus() != MavLinkConnection.MAVLINK_DISCONNECTED) {
+            //Timber.d("Disconnecting...");
+            mBleConnect.disconnect();
+        }
     }
 
 }

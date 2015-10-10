@@ -209,8 +209,13 @@
             <Button
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:id="@+id/buttonBle"
-                android:text="connect"/>
+                android:id="@+id/buttonBleCamera"
+                android:text="camera connect"/>
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/buttonBleCopter"
+                android:text="copter connect"/>
     </LinearLayout>
 
     </LinearLayout>

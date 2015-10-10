@@ -23,6 +23,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.MAVLinks.MAVLinkPacket;
+import com.MAVLinks.common.msg_rc_channels_override;
 import com.google.android.gms.analytics.HitBuilders;
 import com.o3dr.android.client.Drone;
 import com.o3dr.services.android.lib.drone.attribute.AttributeEvent;
@@ -58,12 +59,14 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
     //private DroidPlannerApp dpApp;
     private DroidPlannerPrefs dpPrefs;
 
-    private String mCopterJostickBtAdress;
-    private String mCameraJostickBtAdress;
     private final static String CopterJostickBtName="autopilot";
     private final static String CameraJostickBtName="autopilot";
-    public final static String CopterJostickName="copterJostickName";
-    public final static String CameraJostickName="cameraJostickName";
+    public final static String CopterJostickName="copterJ";
+    public final static String CameraJostickName="cameraJ";
+
+    public final static int BleJostickHandleMsgId =4;
+    private BleJostick mCopterBleJostick;
+    private BleJostick mCameraBleJostick;
 
 
     IRcOutputListen seekBarListen = new IRcOutputListen() {
@@ -186,9 +189,13 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
             });
         }
 
-        Button btnble = (Button) this.getActivity().findViewById(R.id.buttonBle);
+        Button btnble = (Button) this.getActivity().findViewById(R.id.buttonBleCopter);
         if( btnble != null )
             btnble.setOnClickListener(this);
+        Button btnble2 = (Button) this.getActivity().findViewById(R.id.buttonBleCamera);
+        if( btnble != null )
+            btnble.setOnClickListener(this);
+
     }
 
     @Override
@@ -244,11 +251,15 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
                     startPlayVideo();
                 }
                 break;
-            case R.id.buttonBle:
-                if( isCopterJostickDisconnected() ){
-                    findAndConnectBleJostick();
+            case R.id.buttonBleCopter:
+                if( mCopterBleJostick == null){
+                    findAndConnectBleJostick(CopterJostickName, CopterJostickBtName);
                 }else{
-                    doCopterJostickDisconnect();
+                    if( mCopterBleJostick.isJostickDisconnected()){
+                        mCopterBleJostick.doJostickConnect();
+                    }else{
+                        mCopterBleJostick.doJostickDisconnect();
+                    }
                 }
                 break;
             default:
@@ -620,7 +631,6 @@ private void setRcSeekBarTrimValue()
         //bar.setLockValue(keyLockRang[i]);
     }
 }
-
     private Handler mHandler = new Handler(){
         public void handleMessage(Message msg) {
             if( mRcOutput == null) {
@@ -630,15 +640,19 @@ private void setRcSeekBarTrimValue()
             switch (msg.what) {
                 case JgRcOutput.DRONE_ERROR:
                     alertUser("Drone has something bad status, RcOutput exit");
+                    break;
                 case JgRcOutput.ALLID:
                     for( int i=0 ; i<= JgRcOutput.CHN8ID; i++)
                         doUpdateRcUi(i);
+                    break;
+                case BleJostickHandleMsgId:
+                    doHandleBleMessage(msg.getData());
                     break;
                 default:
                     alertUser("unknow msg frome rcoutput");
                     break;
             }
-            super.handleMessage(msg);
+            //super.handleMessage(msg);
         }
     };
 
@@ -648,18 +662,62 @@ private void setRcSeekBarTrimValue()
 
     //########################## ble function
     //#### ui even
-    private void onBleConnected()
+    private void doHandleBleMessage(Bundle data)
     {
-        Button btn = (Button) this.getActivity().findViewById(R.id.buttonBle);
-        if( btn != null ){
-            btn.setText("DisConnect");
+        String id = data.getString("id");
+        String name = data.getString("name");
+
+        if( id.equals("onComError")){
+            alertUser(name+" onComErr:"+data.getString("string"));
+            if( name.equals(CopterJostickName)){
+                 mCopterBleJostick.doJostickDisconnect();
+            }else if(name.equals(CameraJostickName)){
+                mCameraBleJostick.doJostickDisconnect();
+            }
+        }else if( id.equals("onStartingConnection") ) {
+            alertUser(name+" onStartingConnection");
+
+        }else if( id.equals("onConnect")){
+            onBleConnected(name);
+
+        } else if (id.equals("onDisconnect")){
+            onBleDisconnected(name);
+
+        }else if (id.equals("onReceivePacket")){
+            if( name.equals(CopterJostickName)){
+                alertUser(name+":"+ mCopterBleJostick.getRc(0) + " ," + mCopterBleJostick.getRc(1) + " ," +mCopterBleJostick.getRc(2) + " ," + mCopterBleJostick.getRc(3));
+            }else if(name.equals(CameraJostickName)){
+                alertUser(name+":"+ mCameraBleJostick.getRc(0) + " ," + mCameraBleJostick.getRc(1) + " ," +mCameraBleJostick.getRc(2) + " ," + mCameraBleJostick.getRc(3));
+            }
+
+        }else{
+            ;//no fix msg
         }
     }
-    private void onBleDisconnected()
-    {
-        Button btn = (Button) this.getActivity().findViewById(R.id.buttonBle);
+    private void onBleConnected(String name){
+        Button btn;
+        if( name.equals(CameraJostickName) ){
+            btn = (Button) this.getActivity().findViewById(R.id.buttonBleCamera);
+        }else if( name.equals(CopterJostickName)){
+            btn = (Button) this.getActivity().findViewById(R.id.buttonBleCopter);
+        }else{
+            btn = null;
+        }
         if( btn != null ){
-            btn.setText("Connect");
+            btn.setText(name+" DisConnect");
+        }
+    }
+    private void onBleDisconnected(String name){
+        Button btn;
+        if( name.equals(CameraJostickName) ){
+            btn = (Button) this.getActivity().findViewById(R.id.buttonBleCamera);
+        }else if( name.equals(CopterJostickName)){
+            btn = (Button) this.getActivity().findViewById(R.id.buttonBleCopter);
+        }else{
+            btn = null;
+        }
+        if( btn != null ){
+            btn.setText(name+" Connect");
         }
     }
     //### find devices
@@ -670,18 +728,36 @@ private void setRcSeekBarTrimValue()
                 if (resultCode == Activity.RESULT_CANCELED) {
                     // Bluetooth activation was denied by the user. Dismiss this activity.
                     //finish();
-                    mCameraJostickBtAdress= null;
-                    mCopterJostickBtAdress = null;
+                    ;
                 }
                 if( resultCode == FindBluetoothDevicesActivity.REQUEST_BLE_ADDR_CODE){
                     if( data.getBooleanExtra("res",false) ){
-                        mCameraJostickBtAdress = data.getStringExtra(CopterJostickName);
-                        mCopterJostickBtAdress = data.getStringExtra(CameraJostickName);
-                        alertUser("find the ble jostick: " + mCopterJostickBtAdress + "," + mCameraJostickBtAdress);
-                        doCopterJostickConnect();
+                        String address;
+                        address = data.getStringExtra(CameraJostickName);
+                        if( address != null ){
+                            if( mCameraBleJostick == null ) {
+                                mCameraBleJostick = new BleJostick(this.getContext(), mHandler, CameraJostickName, address);
+                                mCameraBleJostick.doJostickConnect();
+                            }else if( mCameraBleJostick.isJostickDisconnected()){
+                                mCameraBleJostick.setAddress(address);
+                                mCameraBleJostick.doJostickConnect();
+                            }else{
+                                ;//has connected
+                            }
+                        }
+                        address = data.getStringExtra(CopterJostickName);
+                        if( address != null ){
+                            if( mCopterBleJostick == null ) {
+                                mCopterBleJostick = new BleJostick(this.getContext(), mHandler, CopterJostickName, address);
+                                mCopterBleJostick.doJostickConnect();
+                            }else if( mCopterBleJostick.isJostickDisconnected()){
+                                mCopterBleJostick.setAddress(address);
+                                mCopterBleJostick.doJostickConnect();
+                            }else{
+                                ;//has connected
+                            }
+                        }
                     }else{
-                        mCameraJostickBtAdress= null;
-                        mCopterJostickBtAdress = null;
                         alertUser("Can not find the ble jostick");
                     }
 
@@ -694,71 +770,13 @@ private void setRcSeekBarTrimValue()
         }
     }
 
-    private void findAndConnectBleJostick()
-    {
+    private void findAndConnectBleJostick(String jostickName, String jostickBtName)
+    {//use this function when two jostick has their names
         Intent i;
         i = new Intent(this.getContext(),FindBluetoothDevicesActivity.class);
         //i.putExtra(CameraJostickName, CameraJostickBtName);
-        i.putExtra(CopterJostickName,CopterJostickBtName);
-        //i.putExtra("count",(short)2);
-        //i.putExtra("uAge", (short)18);
+        i.putExtra(jostickName, jostickBtName);
         startActivityForResult(i, FindBluetoothDevicesActivity.REQUEST_BLE_ADDR_CODE);
-    }
-    //##### connect ble
-    private  BluetoothConnection mBleConnect;
-    MavLinkConnectionListener mBlelistener=new MavLinkConnectionListener() {
-        @Override
-        public void onStartingConnection() {
-            debugMsg("onStartingConnection");
-        }
-
-        @Override
-        public void onConnect(long connectionTime) {
-            debugMsg("onConnect:"+connectionTime);
-            onBleConnected();
-        }
-
-        @Override
-        public void onReceivePacket(MAVLinkPacket packet) {
-            debugMsg("onReceivePacket");
-        }
-
-        @Override
-        public void onDisconnect(long disconnectionTime) {
-            debugMsg("onDisconnect:"+disconnectionTime);
-            onBleDisconnected();
-        }
-
-        @Override
-        public void onComError(String errMsg) {
-            debugMsg("onComError:"+errMsg);
-        }
-    };
-
-    private boolean isCopterJostickDisconnected()
-    {
-        return mBleConnect.getConnectionStatus() == MavLinkConnection.MAVLINK_DISCONNECTED;
-    }
-
-    private void doCopterJostickConnect()
-    {
-        if( mCopterJostickBtAdress != null){
-            mBleConnect = new BluetoothConnection(this.getContext(), mCopterJostickBtAdress);
-            mBleConnect.addMavLinkConnectionListener(CopterJostickName, mBlelistener);
-            if (mBleConnect.getConnectionStatus() == MavLinkConnection.MAVLINK_DISCONNECTED) {
-                mBleConnect.connect();
-            }
-        }
-    }
-    private void doCopterJostickDisconnect()
-    {
-        if( mBleConnect == null) return;
-
-        mBleConnect.removeMavLinkConnectionListener(CopterJostickName);
-        if (mBleConnect.getMavLinkConnectionListenersCount() == 0 && mBleConnect.getConnectionStatus() != MavLinkConnection.MAVLINK_DISCONNECTED) {
-            //Timber.d("Disconnecting...");
-            mBleConnect.disconnect();
-        }
     }
 
 }

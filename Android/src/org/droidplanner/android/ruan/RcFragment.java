@@ -65,9 +65,11 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
     public final static String CameraJostickName="cameraJ";
 
     public final static int BleJostickHandleMsgId =4;
+    public final static int Get4GIPHandleMsgId =5;
     private BleJostick mCopterBleJostick;
     private BleJostick mCameraBleJostick;
 
+    Router4GFindWanIp m4GIpRouter;
 
     IRcOutputListen seekBarListen = new IRcOutputListen() {
         @Override
@@ -196,6 +198,7 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
         if( btnble != null )
             btnble.setOnClickListener(this);
 
+        m4GIpRouter = new Router4GFindWanIp(mHandler);
     }
 
     @Override
@@ -229,6 +232,7 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
         getBroadcastManager().unregisterReceiver(eventReceiver);
     }
 
+
     @Override
     public void onClick(View v) {
         HitBuilders.EventBuilder eventBuilder = new HitBuilders.EventBuilder()
@@ -245,11 +249,13 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
                 }
                 break;
             case R.id.videoPlayBtn:
+                m4GIpRouter.doGetIp();
+                /*
                 if( mVlcVideo.isPlaying()){
                     stopPlayVideo();
                 }else{
                     startPlayVideo();
-                }
+                }*/
                 break;
             case R.id.buttonBleCopter:
                 if( mCopterBleJostick == null){
@@ -633,10 +639,11 @@ private void setRcSeekBarTrimValue()
 }
     private Handler mHandler = new Handler(){
         public void handleMessage(Message msg) {
+            /*
             if( mRcOutput == null) {
                 super.handleMessage(msg);
                 return;
-            }
+            }*/
             switch (msg.what) {
                 case JgRcOutput.DRONE_ERROR:
                     alertUser("Drone has something bad status, RcOutput exit");
@@ -647,6 +654,9 @@ private void setRcSeekBarTrimValue()
                     break;
                 case BleJostickHandleMsgId:
                     doHandleBleMessage(msg.getData());
+                    break;
+                case Get4GIPHandleMsgId:
+                    alertUser(msg.getData().getString("ip"));
                     break;
                 default:
                     alertUser("unknow msg frome rcoutput");

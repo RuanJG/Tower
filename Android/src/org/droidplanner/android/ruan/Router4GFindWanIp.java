@@ -42,6 +42,7 @@ public class Router4GFindWanIp {
                 getIpByClient("admin", "");
             }
         }.start();
+        //getIpByClient("admin", "");
     }
     private void sendMsg(String ip)
     {

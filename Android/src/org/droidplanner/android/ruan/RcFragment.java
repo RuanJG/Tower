@@ -51,8 +51,14 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
     private static boolean []keyLockRang=new boolean[8];
 
     private Spinner rcOutputMode ;
+
+
     private int rcChangeRange = 30;
-    private int pressKeyCount=0;
+    private static final int RcLockRangChanCount = 4;
+    public int []RcLockRangValue = new int[RcLockRangChanCount];
+    private int lastChanRCID = 0;
+
+
     private VlcVideoFragment mVlcVideo;
     private Button playBtn ;
     private EditText videoAddr;
@@ -157,12 +163,12 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
 
         setupVlcVideo();
 
-        setRcChangeRange(rcChangeRange);
+        setRcChangeRange(rcChangeRange,-1);
         SeekBar rcRangBar = (SeekBar)this.getActivity().findViewById(R.id.rcRangeSeekBar);
         rcRangBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                setRcChangeRange(progress);
+                setRcChangeRange(progress,lastChanRCID);
             }
 
             @Override
@@ -182,6 +188,11 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
                 @Override
                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                     Log.d(TAG, "get position,id=" + position + id);
+                    if( id == 0 ){
+                        mRcOutput.setmMode(JgRcOutput.HARDMODE);
+                    }else{
+                        mRcOutput.setmMode(JgRcOutput.SOFTWAREMODE);
+                    }
                 }
 
                 @Override
@@ -195,10 +206,16 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
         if( btnble != null )
             btnble.setOnClickListener(this);
         Button btnble2 = (Button) this.getActivity().findViewById(R.id.buttonBleCamera);
-        if( btnble != null )
-            btnble.setOnClickListener(this);
+        if( btnble2 != null )
+            btnble2.setOnClickListener(this);
+
+        Button btn3 = (Button) this.getActivity().findViewById(R.id.buttonSetIp);
+        if( btn3 != null )
+            btn3.setOnClickListener(this);
 
         m4GIpRouter = new Router4GFindWanIp(mHandler);
+        if( dpPrefs == null)
+            dpPrefs = new DroidPlannerPrefs(this.getContext());
     }
 
     @Override
@@ -249,13 +266,11 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
                 }
                 break;
             case R.id.videoPlayBtn:
-                m4GIpRouter.doGetIp();
-                /*
                 if( mVlcVideo.isPlaying()){
                     stopPlayVideo();
                 }else{
                     startPlayVideo();
-                }*/
+                }
                 break;
             case R.id.buttonBleCopter:
                 if( mCopterBleJostick == null){
@@ -268,6 +283,8 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
                     }
                 }
                 break;
+            case R.id.buttonSetIp:
+                m4GIpRouter.doGetIp();
             default:
                 eventBuilder = null;
                 break;
@@ -287,7 +304,7 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
             this.getActivity().getSupportFragmentManager().beginTransaction().add(R.id.vlcVideoView, mVlcVideo).commit();
         }
         if( dpPrefs == null)
-            dpPrefs = new DroidPlannerPrefs(this.getContext());
+        dpPrefs = new DroidPlannerPrefs(this.getContext());
         if(playBtn == null) {
             playBtn = (Button) this.getActivity().findViewById(R.id.videoPlayBtn);
             playBtn.setOnClickListener(this);
@@ -398,7 +415,7 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
     private  void doInitRcOutput(){
         mRcOutput = new JgRcOutput(this.getContext(),mHandler);
         mRcOutput.setmMode(JgRcOutput.SOFTWAREMODE);
-        mRcOutput.setRate(2);
+        mRcOutput.setRate(40);
         //mRcOutput.setDrone(getDrone());
         //mRcOutput.start();
     }
@@ -474,57 +491,54 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
         }
     }
 
-    public boolean doKeyEven(int keyCode, KeyEvent event) {
-        int id=-1;
+    private boolean changeRcByKey(int keyCode,boolean press, boolean lockTrimValue)
+    {
+        int i,id=-1;
         int rc=0;
-        int i;
-        boolean press;
-
-        if( event.ACTION_DOWN == event.getAction()) {
-            pressKeyCount = pressKeyCount>1?pressKeyCount:1+pressKeyCount;
-            press = true;
-            debugMsg("a key down:" + keyCode);
-            mStatusText.setText("a key down:" + keyCode);
-        }else {
-            pressKeyCount = 0;
-            press = false;
-            debugMsg("a key up" + keyCode);
-            mStatusText.setText("a key up:" + keyCode);
-        }
-
-        if( pressKeyCount >1 )
-                //&& keyCode != mRcOutput.getRcKeyById(JgRcOutput.THRID,JgRcOutput.KeyADDTYPE)
-                //&& keyCode != mRcOutput.getRcKeyById(JgRcOutput.THRID,JgRcOutput.KeySUBTYPE)  )
-        { //ignore the long press event
-            //if( id != JgRcOutput.THRID ){
-            return true;
-            //}
-        }
 
         //if( !isStarted() )
-         //   return true;
+        //   return true;
+        if( press && keyCode == mRcOutput.getRcKeyById(mRcOutput.RANG_CTRL_KEY_ID,mRcOutput.KeyADDTYPE)){
+            rc = RcLockRangValue[lastChanRCID];
+            if( rc< 450) {
+                rc += 30;
+                setRcChangeRange(rc,lastChanRCID);
+            }
+            return true;
+        }else if( press && keyCode == mRcOutput.getRcKeyById(mRcOutput.RANG_CTRL_KEY_ID,mRcOutput.KeySUBTYPE)){
+            rc = RcLockRangValue[lastChanRCID];
+            if( rc >=30 ) {
+                rc -= 30;
+                setRcChangeRange(rc,lastChanRCID);
+            }
+            return true;
+        }
+
+
         for( i = 0 ; i<= JgRcOutput.CHN8ID; i++){
             if(keyCode == mRcOutput.getRcKeyById(i,JgRcOutput.KeyADDTYPE)){
                 id = i;
+                if( lockTrimValue )
+                    rc = mRcOutput.getDefalutRcById(id);
+                else
+                    rc = mRcOutput.getRcById(id);
                 if( press ) { //key down
-                    rc = rcChangeRange;
-                }else {        //key up
-                    if( keyLockRang[i] )//key lock a range
-                        rc = rcChangeRange * (-1);
-                    else
-                        rc = 0;
+                    //rc += rcChangeRange;
+                    //rc += lockTrimValue? rcChangeRange:30; //30 step
+                    rc+= id < RcLockRangChanCount ? RcLockRangValue[id]:30 ;
                 }
                 break;
             }
             if( keyCode == mRcOutput.getRcKeyById(i,JgRcOutput.KeySUBTYPE)){
                 id = i;
+                if( lockTrimValue )
+                    rc = mRcOutput.getDefalutRcById(id);
+                else
+                    rc = mRcOutput.getRcById(id);
                 if( press ) {
-                    rc = rcChangeRange * (-1);
-                }else {
-                    if(keyLockRang[i] )
-                        rc = rcChangeRange;
-                    else
-                        rc = 0;
+                    //rc -= rcChangeRange;
+                    //rc -= lockTrimValue? rcChangeRange:30; //30 step
+                    rc-= id < RcLockRangChanCount ? RcLockRangValue[id]:30 ;
                 }
                 break;
             }
@@ -532,13 +546,57 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
 
         //update rc
         debugMsg("updateRcSeekBar id,rc="+id+","+rc);
-        if( id != -1 ){
-            doRcChanged(id, mRcOutput.getRcById(id)+rc );
+        if( id != -1 && rc != 0 ){
+            doRcChanged(id, rc);
+            lastChanRCID = id;
+            setRcChangeRange(RcLockRangValue[id],id);
             return true;
         }else{
             return false;
         }
+    }
+    private int pressKeyCount=0;
+    private int lastPressKeyCode=0;
+    public boolean doKeyEven(int keyCode, KeyEvent event) {
+        int id=-1;
+        int rc=0;
+        int i;
+        boolean lockTrim=true;
+        boolean lastLockTrim=true;
+        /*
+        if(keyCode == mRcOutput.getRcKeyById(mRcOutput.THRID,mRcOutput.KeyADDTYPE)
+                || keyCode == mRcOutput.getRcKeyById(mRcOutput.THRID,mRcOutput.KeySUBTYPE) ){
+            lockTrim = false;
+        }*/
 
+        if( event.ACTION_DOWN == event.getAction()) {
+            mStatusText.setText("a key down:" + keyCode);
+            if(pressKeyCount <= 0) {
+                //first time press key
+                pressKeyCount = 1;
+                lastPressKeyCode = keyCode;
+                return changeRcByKey(keyCode,true,lockTrim);
+            }else{
+                if( lastPressKeyCode == keyCode){// long press
+                    if( !lockTrim ){
+                        return changeRcByKey(keyCode,true,lockTrim);
+                    }
+                    return  true;
+                }else{//no release last key , and new key press
+                    /*
+                    if(lastPressKeyCode == mRcOutput.getRcKeyById(mRcOutput.THRID,mRcOutput.KeyADDTYPE)
+                            || lastPressKeyCode == mRcOutput.getRcKeyById(mRcOutput.THRID,mRcOutput.KeySUBTYPE) ){
+                        lastLockTrim = false;
+                    }*/
+                    changeRcByKey(keyCode,false,lastLockTrim);
+                    return changeRcByKey(keyCode,true,lockTrim);
+                }
+            }
+        }else {
+            pressKeyCount = 0;
+            mStatusText.setText("a key up:" + keyCode);
+            return changeRcByKey(keyCode,false,lockTrim);
+        }
     }
 
     //mRcOutput call back use
@@ -572,19 +630,27 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
 
     }
 
-    void setRcChangeRange(int range)
+    private void updateRcChanRangeUi(int id, int val)
     {
         SeekBar bar= (SeekBar) this.getActivity().findViewById(R.id.rcRangeSeekBar);
         TextView text = (TextView) this.getActivity().findViewById(R.id.rcRangeText);
-        if( pressKeyCount ==0 ) {
-            rcChangeRange = range;
-            debugMsg("rcChange to "+rcChangeRange);
-
-        }
         if( bar != null )
-            bar.setProgress(rcChangeRange);
+            bar.setProgress(val);
         if( text != null )
-            text.setText("diff("+rcChangeRange+")");
+            text.setText("Rc"+id+"("+val+")");
+    }
+    void setRcChangeRange(int range,int id)
+    {
+        if( id >= 0 && id < RcLockRangChanCount ){
+            RcLockRangValue[id] = range;
+            updateRcChanRangeUi(id,range);
+        }else{
+            //-1 all
+            int i;
+            for( i=0 ; i< RcLockRangChanCount; i++)
+                RcLockRangValue[i] = range;
+            updateRcChanRangeUi(i,range);
+        }
     }
     private rcSeekbarView getSeekBarByRcId(int id){
         rcSeekbarView bar;
@@ -656,7 +722,11 @@ private void setRcSeekBarTrimValue()
                     doHandleBleMessage(msg.getData());
                     break;
                 case Get4GIPHandleMsgId:
-                    alertUser(msg.getData().getString("ip"));
+                    String ip = msg.getData().getString("ip");
+                    if(ip.equals(Router4GFindWanIp.UNVAILD_IP))
+                        alertUser("no avalible ip fine");
+                    else
+                        doSetIpToDrone(ip);
                     break;
                 default:
                     alertUser("unknow msg frome rcoutput");
@@ -668,6 +738,15 @@ private void setRcSeekBarTrimValue()
 
 
 
+    //set4G ip
+    private void doSetIpToDrone(String ip)
+    {
+        alertUser(ip);
+        if( dpPrefs == null)
+            dpPrefs = new DroidPlannerPrefs(this.getContext());
+        //final int connectionType = dpPrefs.getConnectionParameterType();
+        dpPrefs.setTcpServerIp(ip);
+    }
 
 
     //########################## ble function
@@ -695,7 +774,11 @@ private void setRcSeekBarTrimValue()
 
         }else if (id.equals("onReceivePacket")){
             if( name.equals(CopterJostickName)){
-                alertUser(name+":"+ mCopterBleJostick.getRc(0) + " ," + mCopterBleJostick.getRc(1) + " ," +mCopterBleJostick.getRc(2) + " ," + mCopterBleJostick.getRc(3));
+                //alertUser(name+":"+ mCopterBleJostick.getRc(0) + " ," + mCopterBleJostick.getRc(1) + " ," +mCopterBleJostick.getRc(2) + " ," + mCopterBleJostick.getRc(3));
+                for( int i= 0 ; i <= JgRcOutput.CHN8ID; i++){
+                    mRcOutput.setRcByIdForRealRcDevice(i, mCopterBleJostick.getRc(i));
+                    doUpdateRcUi(i);
+                }
             }else if(name.equals(CameraJostickName)){
                 alertUser(name+":"+ mCameraBleJostick.getRc(0) + " ," + mCameraBleJostick.getRc(1) + " ," +mCameraBleJostick.getRc(2) + " ," + mCameraBleJostick.getRc(3));
             }

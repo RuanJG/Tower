@@ -504,16 +504,13 @@ public class FlightActivity extends DrawerNavigationUI {
      * binary is installed and up to date.
      */
     private void setupMapFragment() {
-        mapFragment = null;
-        /*
-        if (mapFragment == null && isGooglePlayServicesValid(true)) {
+        if (mapFragment == null && isGooglePlayServicesValid(false)) {
             mapFragment = (FlightMapFragment) fragmentManager.findFragmentById(R.id.flight_map_fragment);
             if (mapFragment == null) {
                 mapFragment = new FlightMapFragment();
                 fragmentManager.beginTransaction().add(R.id.flight_map_fragment, mapFragment).commit();
             }
         }
-        */
     }
 
     public void setGuidedClickListener(FlightMapFragment.OnGuidedClickListener listener){

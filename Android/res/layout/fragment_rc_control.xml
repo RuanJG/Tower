@@ -206,6 +206,9 @@
             android:layout_height="wrap_content"
             android:id="@+id/statusText"
             android:text="ready..."/>
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -216,6 +219,12 @@
             android:layout_height="wrap_content"
             android:id="@+id/buttonBleCopter"
             android:text="copter connect"/>
+        </LinearLayout>
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/buttonSetIp"
+            android:text="Set 4G IP"/>
     </LinearLayout>
 
 

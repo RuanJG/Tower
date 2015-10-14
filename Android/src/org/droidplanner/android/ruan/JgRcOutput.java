@@ -66,7 +66,9 @@ public class JgRcOutput{
 
     public static  final int KeyADDTYPE = 0;
     public static  final int KeySUBTYPE = 1;
-    private int [][] mKeyMap = new int[8][2]; //[id][KeyAddTYPE]
+    public static  final int KeyCount = 9;
+    private int [][] mKeyMap = new int[KeyCount][2]; //[id][KeyAddTYPE]
+    public static final int RANG_CTRL_KEY_ID = KeyCount-1;
 
     private int mRcMask=0;
 
@@ -144,6 +146,12 @@ public class JgRcOutput{
                 @Override
                 public void run() {
                     if( isReady() ) {
+
+                        sendRcMsg();
+                        setRcStatusChanged(false);
+                        return ;
+
+                        /*
                         if( false && isRcChanged()) {
                             sendRcMsg();
                             onRcChanged(ALLID);
@@ -156,6 +164,7 @@ public class JgRcOutput{
                                 times = 0;
                             }
                         }
+                        */
                     }else{
                         sendErrorMessageToClient(DRONE_ERROR);
                     }
@@ -237,7 +246,6 @@ public class JgRcOutput{
             return sendRc() ;
         }else
             debugMsg("sendRcMsg false , no Ready");
-        debugMsg("sendRcMsg .....");
         return false;
     }
 
@@ -256,6 +264,8 @@ public class JgRcOutput{
         debugMsg("initRcOutput !!");
     }
     private void initKeyMap(){
+        mKeyMap[RANG_CTRL_KEY_ID][KeyADDTYPE] = -1;
+        mKeyMap[RANG_CTRL_KEY_ID][KeySUBTYPE] = -1;
         /* the key for long jostick
         mKeyMap[ROLLID][KeyADDTYPE] = KeyEvent.KEYCODE_3;
         mKeyMap[ROLLID][KeySUBTYPE] = KeyEvent.KEYCODE_1;
@@ -282,6 +292,7 @@ public class JgRcOutput{
         mKeyMap[CHN8ID][KeySUBTYPE] = KeyEvent.KEYCODE_N;
         */
 
+        /*
         // jodisk for usb
         mKeyMap[ROLLID][KeyADDTYPE] = KeyEvent.KEYCODE_BUTTON_1;
         mKeyMap[ROLLID][KeySUBTYPE] = KeyEvent.KEYCODE_BUTTON_3;
@@ -306,6 +317,25 @@ public class JgRcOutput{
 
         mKeyMap[CHN8ID][KeyADDTYPE] = KeyEvent.KEYCODE_M;
         mKeyMap[CHN8ID][KeySUBTYPE] = KeyEvent.KEYCODE_N;
+        */
+
+        //for xiao ji jostick
+        mKeyMap[ROLLID][KeyADDTYPE] = 97;
+        mKeyMap[ROLLID][KeySUBTYPE] = 99;
+
+        mKeyMap[PITCHID][KeyADDTYPE] = 96;
+        mKeyMap[PITCHID][KeySUBTYPE] = 100;
+
+        mKeyMap[THRID][KeyADDTYPE] = KeyEvent.KEYCODE_DPAD_UP;
+        mKeyMap[THRID][KeySUBTYPE] = KeyEvent.KEYCODE_DPAD_DOWN;
+
+        mKeyMap[YAWID][KeyADDTYPE] = KeyEvent.KEYCODE_DPAD_RIGHT;
+        mKeyMap[YAWID][KeySUBTYPE] = KeyEvent.KEYCODE_DPAD_LEFT;
+
+        mKeyMap[CHN5ID][KeyADDTYPE] = 105;
+        mKeyMap[CHN5ID][KeySUBTYPE] = 104;
+        mKeyMap[RANG_CTRL_KEY_ID][KeyADDTYPE] = 103;
+        mKeyMap[RANG_CTRL_KEY_ID][KeySUBTYPE] = 102;
         //
     }
     private void updateParamRc(){
@@ -417,7 +447,17 @@ public class JgRcOutput{
         }
         setRcStatusChanged(true);
         mRcMask |= 1<<id;
-        sendRcMsg();
+        //sendRcMsg();
+        //onRcChanged(ALLID);
+        return true;
+    }
+    public boolean setRcByIdForRealRcDevice(int id, short rc){
+        if( id >= ALLID) return false;
+
+        rcOutputs[id] = rc;
+        setRcStatusChanged(true);
+        mRcMask |= 1<<id;
+        //sendRcMsg();
         //onRcChanged(ALLID);
         return true;
     }

@@ -51,6 +51,7 @@ public class O2oActivity extends AppCompatActivity {
     private EditText userName ;
     private EditText password;
     private EditText copterId;
+    private TextView o2otime;
 
     private Thread tcpThread = null;
     private boolean threadQuit = false;
@@ -95,6 +96,7 @@ public class O2oActivity extends AppCompatActivity {
         userName = (EditText) findViewById(R.id.username);
         password = (EditText) findViewById(R.id.password);
         copterId = (EditText) findViewById(R.id.copter_id);
+        o2otime = (TextView) findViewById(R.id.o2otime);
 
         //tcpThread = new Thread(tcpRunner);
         updateCopterStatusFromO2oServicer();
@@ -288,6 +290,7 @@ public class O2oActivity extends AppCompatActivity {
                         ipTextView.setText(UNVARLID_IP);
                 }
                 if(statusTextView!=null )statusTextView.setText(getStringFromJsion(data,"iol"));
+                if( o2otime != null ) o2otime.setText(getStringFromJsion(data,"olt"));
             }
             updateOver();
         }

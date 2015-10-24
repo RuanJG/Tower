@@ -784,7 +784,6 @@ private void setRcSeekBarTrimValue()
         alertUser(ip);
         if( dpPrefs == null)
             dpPrefs = new DroidPlannerPrefs(this.getContext());
-        //final int connectionType = dpPrefs.getConnectionParameterType();
         dpPrefs.setTcpServerIp(ip);
     }
 
@@ -902,7 +901,13 @@ private void setRcSeekBarTrimValue()
                     ip = data.getStringExtra("ip");
                 if( ip != null && !ip.equals(O2oActivity.UNVARLID_IP)){
                     doSetIpToDrone(ip);
-                    if( ! getDrone().isConnected()){
+                    dpPrefs.setConnectionParameterType(ConnectionType.TYPE_TCP);
+
+                    final int connectionType = dpPrefs.getConnectionParameterType();
+
+                    if( (connectionType == ConnectionType.TYPE_TCP || connectionType == ConnectionType.TYPE_UDP)
+                            && dpPrefs.getTcpServerIp().equals(ip)
+                            &&  ! getDrone().isConnected()){
                         ((SuperUI) getActivity()).toggleDroneConnection();
                         DroidPlannerApp dpApp =(DroidPlannerApp)this.getActivity().getApplication();
                         dpApp.connectToDrone();

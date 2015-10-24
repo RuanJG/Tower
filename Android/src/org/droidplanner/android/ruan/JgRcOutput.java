@@ -45,7 +45,7 @@ public class JgRcOutput{
     public static  final String TAG = "JgRcOutput";
 
     private  short[] rcOutputs = new short[8];
-    private short [][] rcParamValue = new short[8][3];;
+    private short [][] rcParamValue = new short[8][3];
     private msg_rc_channels_override rcMsg =new msg_rc_channels_override() ;
     private MavlinkMessageWrapper rcMw = new MavlinkMessageWrapper(rcMsg);
 
@@ -140,7 +140,9 @@ public class JgRcOutput{
             sendRcMsg();
             sendRcMsg();
             mRcMask = 0xffff;
-            setDefaultRc();
+            if( getmMode() == SOFTWAREMODE) {
+                setDefaultRc();
+            }
             mTask = Executors.newScheduledThreadPool(5);
             mTask.scheduleWithFixedDelay(new Runnable() {
                 @Override
@@ -388,7 +390,7 @@ public class JgRcOutput{
         for( i = 0; i<= YAWID; i++) {
             rcOutputs[i] = rcParamValue[i][1];
         }
-        rcOutputs[THRID]= rcParamValue[THRID][0]; // thr use the min value
+        //rcOutputs[THRID]= rcParamValue[THRID][0]; // thr use the min value
 
         // rc 5 ~ rc 8
         for ( i = CHN5ID; i<= CHN8ID; i++ ){

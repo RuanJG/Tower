@@ -40,6 +40,11 @@
         android:glEsVersion="0x00020000"
         android:required="true" />
 
+    <!-- To auto-complete the email text field in the login form with the user's emails -->
+    <uses-permission android:name="android.permission.GET_ACCOUNTS" />
+    <uses-permission android:name="android.permission.READ_PROFILE" />
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
+
     <application
         android:name=".DroidPlannerApp"
         android:allowBackup="true"
@@ -49,14 +54,13 @@
         android:theme="@style/CustomActionBarTheme"
         android:windowSoftInputMode="adjustPan" >
 
-        <!--You must insert your own Google Maps for Android API v2 key in here.-->
+        <!-- You must insert your own Google Maps for Android API v2 key in here. -->
         <meta-data
             android:name="com.google.android.maps.v2.API_KEY"
-            android:value="AIzaSyCN2XBLjIAD7NzTZJDN7BrHanE08PGL5eE"/>
+            android:value="AIzaSyCN2XBLjIAD7NzTZJDN7BrHanE08PGL5eE" />
         <meta-data
             android:name="com.google.android.gms.version"
-            android:value="@integer/google_play_services_version"/>
-
+            android:value="@integer/google_play_services_version" />
 
         <activity
             android:name=".activities.AccountActivity"
@@ -124,6 +128,15 @@
         <activity
             android:name=".ruan.FindBluetoothDevicesActivity"
             android:label="@string/title_activity_find_bluetooth_devices" >
+        </activity>
+        <activity
+            android:name=".CopterLoginActivity"
+            android:label="@string/title_activity_copter_login" >
+        </activity>
+        <activity
+            android:name=".ruan.O2oActivity"
+            android:label="@string/title_activity_o2o"
+            android:theme="@style/CustomActionBarTheme" >
         </activity>
     </application>
 

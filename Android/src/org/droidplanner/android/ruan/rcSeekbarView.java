@@ -33,7 +33,7 @@ public class rcSeekbarView extends View implements View.OnTouchListener{
     private float mPersonPaintWidth,mPersonPaintHeight;
 
     private double person = 0.5;
-    private int mMax=2000,mMin=1000;
+    public static int mMax=2000,mMin=1000;
     private int process = 1500;
 
     private int padding = 1;
@@ -104,7 +104,6 @@ public class rcSeekbarView extends View implements View.OnTouchListener{
 
 
         this.setOnTouchListener(this);
-
     }
 
     private void invalidateTextPaintAndMeasurements() {
@@ -217,13 +216,17 @@ public class rcSeekbarView extends View implements View.OnTouchListener{
                 break;
             case MotionEvent.ACTION_MOVE:
                 //Log.e(TAG, "move to x,y,top,btom=" + event.getRawX() + "," + event.getRawY() + ","+getLeft()+"," + getTop() + ","+getRight()+"," + getBottom());
+
+                /*
                 p = (int)(mMin + (mMax-mMin) * (event.getRawX()-position[0])/(getWidth()));
-                //Log.e(TAG, "process=" + p);
                 doNotifyRcChanged(mRcId, p);
+                */
                 break;
             case MotionEvent.ACTION_UP:
+                /*
                 if( lockValue )
                     doNotifyRcChanged(mRcId,mRcTrimValue);
+                    */
                 //Log.i(TAG, "up in x,y=" +event.getRawX()+","+ event.getRawY() );
                 //Log.i(TAG, "screen in x,y=" +position[0]+","+ position[1] );
                 //Log.e(TAG, "content with=" + this.getWidth());

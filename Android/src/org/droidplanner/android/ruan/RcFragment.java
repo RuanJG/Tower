@@ -27,9 +27,14 @@ import com.MAVLinks.common.msg_rc_channels_override;
 import com.google.android.gms.analytics.HitBuilders;
 import com.o3dr.android.client.Drone;
 import com.o3dr.services.android.lib.drone.attribute.AttributeEvent;
+import com.o3dr.services.android.lib.drone.attribute.AttributeType;
 import com.o3dr.services.android.lib.drone.connection.ConnectionType;
+import com.o3dr.services.android.lib.drone.property.State;
+import com.o3dr.services.android.lib.drone.property.VehicleMode;
 
+import org.droidplanner.android.DroidPlannerApp;
 import org.droidplanner.android.R;
+import org.droidplanner.android.activities.helpers.SuperUI;
 import org.droidplanner.android.fragments.helpers.ApiListenerFragment;
 import org.droidplanner.android.utils.analytics.GAUtils;
 import org.droidplanner.android.utils.prefs.DroidPlannerPrefs;
@@ -65,8 +70,8 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
     //private DroidPlannerApp dpApp;
     private DroidPlannerPrefs dpPrefs;
 
-    private final static String CopterJostickBtName="autopilot";
-    private final static String CameraJostickBtName="autopilot";
+    private final static String CopterJostickBtName="copterJostick";
+    private final static String CameraJostickBtName="cameraJostick";
     public final static String CopterJostickName="copterJ";
     public final static String CameraJostickName="cameraJ";
 
@@ -76,6 +81,8 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
     private BleJostick mCameraBleJostick;
 
     Router4GFindWanIp m4GIpRouter;
+
+    public static final int O2O_ACTIVITY_ADDR_RESULT_CODE = 30;
 
     IRcOutputListen seekBarListen = new IRcOutputListen() {
         @Override
@@ -134,6 +141,7 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
     private  void debugMsg(String msg){
         Log.d(TAG, msg);
         //mStatusText.setText(msg);
+        ;
     }
 
 
@@ -163,12 +171,12 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
 
         setupVlcVideo();
 
-        setRcChangeRange(rcChangeRange,-1);
+        setRcChangeRange(300, -1);
         SeekBar rcRangBar = (SeekBar)this.getActivity().findViewById(R.id.rcRangeSeekBar);
         rcRangBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                setRcChangeRange(progress,lastChanRCID);
+                setRcChangeRange(progress, lastChanRCID);
             }
 
             @Override
@@ -212,6 +220,9 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
         Button btn3 = (Button) this.getActivity().findViewById(R.id.buttonSetIp);
         if( btn3 != null )
             btn3.setOnClickListener(this);
+        Button btn4 = (Button) this.getActivity().findViewById(R.id.buttonO2oIp);
+        if( btn4 != null )
+            btn4.setOnClickListener(this);
 
         m4GIpRouter = new Router4GFindWanIp(mHandler);
         if( dpPrefs == null)
@@ -285,6 +296,12 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
                 break;
             case R.id.buttonSetIp:
                 m4GIpRouter.doGetIp();
+                break;
+            case R.id.buttonO2oIp:
+                Intent i;
+                i = new Intent(this.getContext(),O2oActivity.class);
+                startActivityForResult(i, O2O_ACTIVITY_ADDR_RESULT_CODE);
+                break;
             default:
                 eventBuilder = null;
                 break;
@@ -421,6 +438,28 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
     }
 
     //********************************************* reseponed the ui event
+    private void getFlightMode() {
+        State droneState = getDrone().getAttribute(AttributeType.STATE);
+        if (droneState == null)
+            return;
+        final VehicleMode flightMode = droneState.getVehicleMode();
+        if (flightMode == null)
+            return;
+
+        switch (flightMode) {
+            case COPTER_AUTO:
+                break;
+            case COPTER_GUIDED:
+                break;
+            case COPTER_RTL:
+                break;
+            case COPTER_LAND:
+                break;
+            default:
+                break;
+        }
+       // getDrone().doGuidedTakeoff(10);
+    }
     private void doCopterConnect(){
         mRcOutput.setDrone(getDrone());
         isParamUpdated =false;
@@ -626,6 +665,7 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
             bar.setId(i);
             bar.setLockValue(keyLockRang[i]);
             bar.setRcListen(seekBarListen);
+            bar.setProcess(rcSeekbarView.mMin);
         }
 
     }
@@ -856,7 +896,19 @@ private void setRcSeekBarTrimValue()
 
                 }
                 break;
-
+            case O2O_ACTIVITY_ADDR_RESULT_CODE:{
+                String ip = null;
+                if( data != null)
+                    ip = data.getStringExtra("ip");
+                if( ip != null && !ip.equals(O2oActivity.UNVARLID_IP)){
+                    doSetIpToDrone(ip);
+                    if( ! getDrone().isConnected()){
+                        ((SuperUI) getActivity()).toggleDroneConnection();
+                        DroidPlannerApp dpApp =(DroidPlannerApp)this.getActivity().getApplication();
+                        dpApp.connectToDrone();
+                    }
+                }
+            }
             default:
                 super.onActivityResult(requestCode, resultCode, data);
                 break;

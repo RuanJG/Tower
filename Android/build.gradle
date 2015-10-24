@@ -2,23 +2,24 @@ apply plugin: 'com.android.application'
 
 dependencies {
     compile project(':ruanconnectionlibrary')
-    compile 'com.google.android.gms:play-services-maps:7.3.0'
-    compile 'com.google.android.gms:play-services-location:7.3.0'
-    compile 'com.google.android.gms:play-services-analytics:7.3.0'
-    compile 'com.sothree.slidinguppanel:library:2.0.2'
-    compile 'com.android.support:support-v4:22.1.1'
-    compile 'com.android.support:appcompat-v7:22.1.1'
-    compile 'com.android.support:cardview-v7:22.1.0'
-    compile 'com.android.support:recyclerview-v7:22.1.0'
-    compile 'com.o3dr.android:dronekit-android:2.3.25'
-    compile 'me.grantland:autofittextview:0.2.1'
     compile(name: 'shimmer-android-release', ext: 'aar')
     compile files('libs/droneapi-java-0.3-SNAPSHOT.jar')
     compile files('libs/protobuf-java-2.5.0.jar')
     compile files('libs/jeromq-0.3.4.jar')
     compile files('libs/sius-0.3.2-SNAPSHOT.jar')
+    compile 'com.google.android.gms:play-services-maps:7.3.0'
+    compile 'com.google.android.gms:play-services-location:7.3.0'
+    compile 'com.google.android.gms:play-services-analytics:7.3.0'
+    compile 'com.sothree.slidinguppanel:library:2.0.2'
+    compile 'com.android.support:support-v4:22.2.1'
+    compile 'com.android.support:appcompat-v7:22.2.1'
+    compile 'com.android.support:cardview-v7:22.2.1'
+    compile 'com.android.support:recyclerview-v7:22.2.1'
+    compile 'com.o3dr.android:dronekit-android:2.3.25'
+    compile 'me.grantland:autofittextview:0.2.1'
     compile 'com.squareup.okhttp:okhttp:2.3.0'
     compile 'com.squareup.okhttp:okhttp-urlconnection:2.3.0'
+    compile 'com.android.support:design:22.2.1'
 }
 
 android {
@@ -95,12 +96,12 @@ android {
 /**
  * @return The most recent git tag to be used as version name for the app.
  */
-def getGitVersion(){
+def getGitVersion() {
     def cmd = "git describe --tag"
     try {
         def proc = cmd.execute()
         return proc.text.trim()
-    }catch(IOException e){
+    } catch (IOException e) {
         //Unable to find 'git'
         return "please update version name manually"
     }
@@ -111,7 +112,7 @@ def getAppKeystoreFile() {
     return filePath ? file(filePath) : null
 }
 
-def getAppKeystorePassword(){
+def getAppKeystorePassword() {
     return hasProperty('ORG_DROIDPLANNER_ANDROID_KEYSTORE_PWD') ? ORG_DROIDPLANNER_ANDROID_KEYSTORE_PWD : ''
 }
 

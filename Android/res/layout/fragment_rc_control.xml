@@ -220,11 +220,20 @@
             android:id="@+id/buttonBleCopter"
             android:text="copter connect"/>
         </LinearLayout>
-        <Button
+        <LinearLayout
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/buttonSetIp"
-            android:text="Set 4G IP"/>
+            android:layout_height="wrap_content">
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/buttonSetIp"
+                android:text="Set 4G IP"/>
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/buttonO2oIp"
+                android:text="Connect O2O"/>
+        </LinearLayout>
     </LinearLayout>
 
 

@@ -83,6 +83,7 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
     Router4GFindWanIp m4GIpRouter;
 
     public static final int O2O_ACTIVITY_ADDR_RESULT_CODE = 30;
+    public static final int Rc_Settings_RESULT_CODE = 40;
 
     IRcOutputListen seekBarListen = new IRcOutputListen() {
         @Override
@@ -653,6 +654,14 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
         return mRcOutput.setRcById(id, (short) value);
     }
 
+    private void doRcSeekBarTouch( int id )
+    {
+        Intent i;
+        i = new Intent(this.getContext(),RcSettingActivity.class);
+        //i.putExtra(CameraJostickName, CameraJostickBtName);
+        i.putExtra("id", id);
+        startActivityForResult(i, Rc_Settings_RESULT_CODE);
+    }
     private void initRcSeekBar(){
         rcSeekbarView bar;
         Arrays.fill(keyLockRang, false);
@@ -666,6 +675,15 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
             bar.setLockValue(keyLockRang[i]);
             bar.setRcListen(seekBarListen);
             bar.setProcess(rcSeekbarView.mMin);
+            bar.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    //alertUser("rc seekbar click");
+                    rcSeekbarView bar = (rcSeekbarView) v;
+                    doRcSeekBarTouch(bar.getId());
+                }
+            });
+
         }
 
     }

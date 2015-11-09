@@ -138,6 +138,8 @@
             android:label="@string/title_activity_o2o"
             android:theme="@style/CustomActionBarTheme" >
         </activity>
+        <activity android:name=".ruan.RcSettingActivity" >
+        </activity>
     </application>
 
 </manifest>

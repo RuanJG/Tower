@@ -61,15 +61,15 @@
             android:layout_marginTop="50dp"
             />
         <include
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            layout="@layout/button_rc"
-            android:layout_below="@+id/actionbar_container"
-            android:layout_alignLeft="@+id/actionbar_container"
-            android:layout_marginTop="@dimen/rc_view_top_margin"
-            android:id="@+id/rc_view"
-            android:clickable="true"
-            />
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        layout="@layout/button_rc"
+        android:layout_below="@+id/actionbar_container"
+        android:layout_alignLeft="@+id/actionbar_container"
+        android:layout_marginTop="@dimen/rc_view_top_margin"
+        android:id="@+id/rc_view"
+        android:clickable="true"
+        />
 
     </RelativeLayout>
     <!-- Sliding layout -->

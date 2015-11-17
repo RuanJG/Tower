@@ -159,6 +159,8 @@ public class BleJostick {
         }
     };
 
-
+    public void sendMavlinkMessage(com.MAVLinks.MAVLinkPacket packet){
+        mBleConnect.sendMavPacket(packet);
+    }
 
 }

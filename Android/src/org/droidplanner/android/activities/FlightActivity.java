@@ -36,6 +36,7 @@ import org.droidplanner.android.fragments.control.FlightControlManagerFragment;
 import org.droidplanner.android.fragments.FlightMapFragment;
 import org.droidplanner.android.fragments.TelemetryFragment;
 import org.droidplanner.android.fragments.mode.FlightModePanel;
+import org.droidplanner.android.ruan.boxJostickFragment;
 import org.droidplanner.android.utils.prefs.AutoPanMode;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -162,6 +163,7 @@ public class FlightActivity extends DrawerNavigationUI {
     // add by ruan
     private RcFragment mRcControl;
     private boolean rcMoveAble=false;
+    private boxJostickFragment boxJostick;
     //end
 
     @Override
@@ -227,6 +229,14 @@ public class FlightActivity extends DrawerNavigationUI {
                     .add(R.id.rcFragment, mRcControl)
                     .commit();
         }
+        boxJostick = (boxJostickFragment) fragmentManager.findFragmentById(R.id.box_jostick_Fragment);
+        if( boxJostick == null ){
+            boxJostick  = new boxJostickFragment();
+            fragmentManager.beginTransaction()
+                    .add(R.id.box_jostick_Fragment, boxJostick)
+                    .commit();
+        }
+        if( mRcControl != null) findViewById(R.id.rcFragment).setVisibility(View.GONE);
         final ImageButton rcToggleButton = (ImageButton) findViewById(R.id.toggle_rc_pannel);
         rcToggleButton.setBackgroundColor(Color.argb(0, 255, 255, 255));
         rcToggleButton.setOnClickListener(new View.OnClickListener() {
@@ -234,14 +244,16 @@ public class FlightActivity extends DrawerNavigationUI {
             public void onClick(View v) {
                 if (mRcControl != null && !rcMoveAble) {
                     //if (mRcControl.isHidden()) {
-                    if (findViewById(R.id.rcFragment).getVisibility() == View.INVISIBLE) {
+                    if (findViewById(R.id.rcFragment).getVisibility() != View.VISIBLE) {
                         //fragmentManager.beginTransaction().show(mRcControl).commit();
                         //findViewById(R.id.rc_view).setVisibility(View.VISIBLE);
                         findViewById(R.id.rcFragment).setVisibility(View.VISIBLE);
+                        findViewById(R.id.box_jostick_Fragment).setVisibility(View.GONE);
                     } else {
                         //fragmentManager.beginTransaction().hide(mRcControl).commit();
                         //findViewById(R.id.rc_view).setVisibility(View.INVISIBLE);
-                        findViewById(R.id.rcFragment).setVisibility(View.INVISIBLE);
+                        findViewById(R.id.rcFragment).setVisibility(View.GONE);
+                        findViewById(R.id.box_jostick_Fragment).setVisibility(View.VISIBLE);
                     }
                 }
             }

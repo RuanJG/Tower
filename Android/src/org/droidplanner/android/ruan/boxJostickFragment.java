@@ -35,10 +35,14 @@ import com.o3dr.android.client.apis.drone.ExperimentalApi;
 import com.o3dr.services.android.lib.drone.attribute.AttributeEvent;
 import com.o3dr.services.android.lib.drone.attribute.AttributeType;
 import com.o3dr.services.android.lib.drone.connection.ConnectionType;
+import com.o3dr.services.android.lib.drone.property.Gps;
+import com.o3dr.services.android.lib.drone.property.Home;
 import com.o3dr.services.android.lib.drone.property.State;
 import com.o3dr.services.android.lib.drone.property.VehicleMode;
 import com.o3dr.services.android.lib.mavlink.MavlinkMessageWrapper;
+import com.o3dr.services.android.lib.util.MathUtils;
 
+import org.beyene.sius.unit.length.LengthUnit;
 import org.droidplanner.android.DroidPlannerApp;
 import org.droidplanner.android.R;
 import org.droidplanner.android.activities.helpers.SuperUI;
@@ -48,10 +52,14 @@ import org.droidplanner.android.utils.prefs.DroidPlannerPrefs;
 
 import java.net.InetAddress;
 import java.util.Arrays;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import org.ruan.connection.BluetoothConnection;
 import org.ruan.connection.MavLinkConnection;
 import org.ruan.connection.MavLinkConnectionListener;
+import org.ruan.connection.UsbConnection;
 import org.w3c.dom.Text;
 
 public class boxJostickFragment  extends ApiListenerFragment  implements View.OnClickListener {
@@ -66,7 +74,9 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
     private CheckBox m4gCheckBox;
     private TextView mDistanceText;
     private SeekBar mDistanceBar;
-    private int mDistanceFor4G=0;
+    private final int MAX_RADIO_DISTANCE = 2000;
+    private int mDistanceFor4G=MAX_RADIO_DISTANCE;
+    private int mDistanceNow = 0;
     private boolean m4gConnectStatus = false;
     private boolean mRadioConnectStatus = false;
     private TextView mConnectingTypeText ;
@@ -82,12 +92,15 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
 
     public final static int BleJostickHandleMsgId =4;
     public final static int Get4GIPHandleMsgId =5;
+    public final static int JostickHandleMsgId = 6;
     private BleJostick mCopterBleJostick;
     //private BleJostick mCameraBleJostick;
 
     private BluetoothConnection mBleConnect;
-    private  String mBleName="mega2560_ble";
     private String mAddress;
+    UsbConnection mUartConnect;
+    String mUartName = "boxUartName";
+
     private short mega2560ConnectStatus=0;
     private short mega2560ActivityPath = 0;
     private short GCS_ID= 0;
@@ -104,6 +117,7 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
     private final int    GCS_CMD_REPORT_STATUS =7;
     private final int    GCS_CMD_MAX_ID=8;
 
+    private  msg_rc_channels_override mRcOverridePacket;
 
     IRcOutputListen seekBarListen = new IRcOutputListen() {
         @Override
@@ -113,6 +127,8 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
     };
     private static final IntentFilter eventFilter = new IntentFilter();
     static {
+        eventFilter.addAction(AttributeEvent.GPS_POSITION);
+        eventFilter.addAction(AttributeEvent.HOME_UPDATED);
         eventFilter.addAction(AttributeEvent.STATE_ARMING);
         eventFilter.addAction(AttributeEvent.STATE_CONNECTED);
         eventFilter.addAction(AttributeEvent.STATE_DISCONNECTED);
@@ -129,6 +145,10 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
         public void onReceive(Context context, Intent intent) {
             final String action = intent.getAction();
             switch (action) {
+                case AttributeEvent.GPS_POSITION:
+                case AttributeEvent.HOME_UPDATED:
+                    updateHomeDistance();
+                    break;
                 case AttributeEvent.STATE_CONNECTED:
                     break;
                 case AttributeEvent.PARAMETERS_REFRESH_COMPLETED:
@@ -222,7 +242,7 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
 
         mDistanceBar = (SeekBar) this.getActivity().findViewById(R.id.box_distance_Bar);
         if(mDistanceBar != null) {
-            mDistanceBar.setMax(1000);
+            mDistanceBar.setMax(MAX_RADIO_DISTANCE);
             mDistanceBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
                 @Override
                 public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -239,7 +259,7 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
         }
         mConnectingTypeText = (TextView) this.getActivity().findViewById(R.id.box_connecting_type_text);
         mDistanceText = (TextView) this.getActivity().findViewById(R.id.box_distan_text);
-        set4gDistance(0);
+        set4gDistance(MAX_RADIO_DISTANCE);
 
 
 
@@ -250,6 +270,9 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
         if( btn3 != null )
             btn3.setOnClickListener(this);
             */
+
+
+        if( isJostickDisconnected() ) doJostickConnect();
     }
 
     @Override
@@ -430,9 +453,7 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
                     doRcSeekBarTouch(bar.getId());
                 }
             });
-
         }
-
     }
 
     private rcSeekbarView getSeekBarByRcId(int id){
@@ -483,8 +504,8 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
                 return;
             }*/
             switch (msg.what) {
-                case BleJostickHandleMsgId:
-                    ;//doHandleBleMessage(msg.getData());
+                case JostickHandleMsgId:
+                    doHandleJostickMessage(msg);
                     break;
                 case Get4GIPHandleMsgId:
                     String ip = msg.getData().getString("ip");
@@ -658,7 +679,7 @@ struct param_ip_data{
         ExperimentalApi.sendMavlinkMessage(getDrone(), rcMw);
         */
         if( !isJostickDisconnected() )
-            mBleConnect.sendMavPacket(pack);
+            doJostickSendMavlink(pack);
     }
 
     private boolean isWifiConnecting(){ return (mega2560ConnectStatus & (1<<WIFI_ID)) != 0 ? true:false;}
@@ -673,17 +694,110 @@ struct param_ip_data{
                 if( msg.chan2_raw == GCS_CMD_REPORT_STATUS){
                     mega2560ConnectStatus = (short) msg.chan3_raw;
                     mega2560ActivityPath = (short) msg.chan4_raw;
-
                 }
+            }else{
+                mRcOverridePacket = msg;//this msg is for rc
             }
         }
     }
 
 
 
+
+
+    //######################################  connection control
+    private ScheduledExecutorService mTask;
+    private void startConnectUartThread()
+    {
+        if( mTask != null) return;
+        mTask = Executors.newScheduledThreadPool(5);
+        mTask.scheduleWithFixedDelay(new Runnable() {
+            @Override
+            public void run() {
+                if( isJostickDisconnected())
+                    doJostickConnect();
+            }
+        }, 0, 500, TimeUnit.MILLISECONDS);
+    }
+    private void stopConnectUartThread()
+    {
+        if( mTask!=null ){
+            mTask.shutdownNow();
+            mTask = null;
+        }
+    }
+    private void doHandleJostickMessage(Message msg)
+    {
+        if( msg.getData().getString("id").equals("onReceivePacket")){
+            if( mRcOverridePacket != null){
+                onRcChanged(0,mRcOverridePacket.chan1_raw);
+                onRcChanged(1,mRcOverridePacket.chan2_raw);
+                onRcChanged(2,mRcOverridePacket.chan3_raw);
+                onRcChanged(3,mRcOverridePacket.chan4_raw);
+                onRcChanged(4,mRcOverridePacket.chan5_raw);
+                onRcChanged(5,mRcOverridePacket.chan6_raw);
+                onRcChanged(6,mRcOverridePacket.chan7_raw);
+                onRcChanged(7,mRcOverridePacket.chan8_raw);
+            }
+            onActivityPathChanged();
+            onConnectStatusChanged();
+        }else if( msg.getData().getString("id").equals("onConnect") ){
+            alertUser("Uart connected");
+        }else if( msg.getData().getString("id").equals("onComError") ){
+            alertUser("Uart onComError");
+        }
+    }
+    private  MavLinkConnectionListener mUartlistener=new MavLinkConnectionListener() {
+        @Override
+        public void onStartingConnection() {
+        }
+        @Override
+        public void onConnect(long connectionTime) {
+            stopConnectUartThread();
+            mega2560Ask();
+            Message message = new Message();
+            Bundle bundle = new Bundle();
+            message.what = JostickHandleMsgId;
+            bundle.putString("id", "onConnect");
+            message.setData(bundle);
+            mHandler.sendMessage(message);
+        }
+        @Override
+        public void onReceivePacket(MAVLinkPacket packet) {
+            Mega2560MavlinkHandler(packet);//update the global data
+            // update ui
+            Message message = new Message();
+            Bundle bundle = new Bundle();
+            message.what = JostickHandleMsgId;
+            bundle.putString("id", "onReceivePacket");
+            //bundle.putString("name",mName);
+            message.setData(bundle);
+            mHandler.sendMessage(message);
+        }
+        @Override
+        public void onDisconnect(long disconnectionTime) {
+            Message message = new Message();
+            Bundle bundle = new Bundle();
+            message.what = JostickHandleMsgId;
+            bundle.putString("id", "onDisconnect");
+            message.setData(bundle);
+            mHandler.sendMessage(message);
+        }
+        @Override
+        public void onComError(String errMsg) {
+            doJostickDisconnect();
+            Message message = new Message();
+            Bundle bundle = new Bundle();
+            message.what = JostickHandleMsgId;
+            bundle.putString("id", "onComError");
+            message.setData(bundle);
+            mHandler.sendMessage(message);
+            startConnectUartThread();
+        }
+    };
+
+/*
     //###########################################################   BluetoothConnection
-
-
     public boolean isJostickDisconnected()
     {
         return mBleConnect==null || mBleConnect.getConnectionStatus() == MavLinkConnection.MAVLINK_DISCONNECTED;
@@ -693,7 +807,7 @@ struct param_ip_data{
         if( mAddress != null && isJostickDisconnected()){
             //if( mBleConnect == null) {
             mBleConnect = new BluetoothConnection(this.getContext(), mAddress);
-            mBleConnect.addMavLinkConnectionListener(mBleName, mBlelistener);
+            mBleConnect.addMavLinkConnectionListener(mUartName, mUartlistener);
             //}
             mBleConnect.connect();
         }
@@ -702,30 +816,61 @@ struct param_ip_data{
     {
         if( isJostickDisconnected()) return;
 
-        mBleConnect.removeMavLinkConnectionListener(mBleName);
+        mBleConnect.removeMavLinkConnectionListener(mUartName);
         if (mBleConnect.getMavLinkConnectionListenersCount() == 0 && mBleConnect.getConnectionStatus() != MavLinkConnection.MAVLINK_DISCONNECTED) {
             //Timber.d("Disconnecting...");
             mBleConnect.disconnect();
         }
     }
 
-    private  MavLinkConnectionListener mBlelistener=new MavLinkConnectionListener() {
-        @Override
-        public void onStartingConnection() {
-        }
-        @Override
-        public void onConnect(long connectionTime) {
-            mega2560Ask();
-        }
-        @Override
-        public void onReceivePacket(MAVLinkPacket packet) {
+*/
 
+    //############################################# uart
+
+    public boolean isJostickDisconnected()
+    {
+        return mUartConnect==null || mUartConnect.getConnectionStatus() == MavLinkConnection.MAVLINK_DISCONNECTED;
+    }
+    public void doJostickConnect()
+    {
+        if( isJostickDisconnected() ){
+            mUartConnect = new UsbConnection(this.getContext(),57600);
+            mUartConnect.addMavLinkConnectionListener(mUartName,mUartlistener);
+            mUartConnect.connect();
         }
-        @Override
-        public void onDisconnect(long disconnectionTime) {
+    }
+    public void doJostickDisconnect()
+    {
+        if( isJostickDisconnected()) return;
+
+        mUartConnect.removeMavLinkConnectionListener(mUartName);
+        if (mUartConnect.getMavLinkConnectionListenersCount() == 0 && mUartConnect.getConnectionStatus() != MavLinkConnection.MAVLINK_DISCONNECTED) {
+            //Timber.d("Disconnecting...");
+            mUartConnect.disconnect();
         }
-        @Override
-        public void onComError(String errMsg) {
+    }
+    private void doJostickSendMavlink(com.MAVLinks.MAVLinkPacket pack){
+        mUartConnect.sendMavPacket(pack);
+    }
+
+
+    //################################################## distance function
+    private void updateHomeDistance() {
+        final Context context = getActivity().getApplicationContext();
+        final Drone drone = getDrone();
+
+        String update ;
+        if (drone.isConnected()) {
+            final Gps droneGps = drone.getAttribute(AttributeType.GPS);
+            final Home droneHome = drone.getAttribute(AttributeType.HOME);
+            if (droneGps.isValid() && droneHome.isValid()) {
+                LengthUnit distanceToHome = getLengthUnitProvider().boxBaseValueToTarget
+                        (MathUtils.getDistance(droneHome.getCoordinate(), droneGps.getPosition()));
+                update = String.format("%s", distanceToHome);
+                alertUser("home distance::"+update);
+                //mDistanceNow = Integer.parseInt(update);
+            }
         }
-    };
+    }
+
 }

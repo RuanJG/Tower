@@ -30,10 +30,14 @@ import com.o3dr.android.client.apis.drone.ExperimentalApi;
 import com.o3dr.services.android.lib.drone.attribute.AttributeEvent;
 import com.o3dr.services.android.lib.drone.attribute.AttributeType;
 import com.o3dr.services.android.lib.drone.connection.ConnectionType;
+import com.o3dr.services.android.lib.drone.property.Gps;
+import com.o3dr.services.android.lib.drone.property.Home;
 import com.o3dr.services.android.lib.drone.property.State;
 import com.o3dr.services.android.lib.drone.property.VehicleMode;
 import com.o3dr.services.android.lib.mavlink.MavlinkMessageWrapper;
+import com.o3dr.services.android.lib.util.MathUtils;
 
+import org.beyene.sius.unit.length.LengthUnit;
 import org.droidplanner.android.DroidPlannerApp;
 import org.droidplanner.android.R;
 import org.droidplanner.android.activities.helpers.SuperUI;
@@ -1071,6 +1075,6 @@ struct param_ip_data{
         MavlinkMessageWrapper rcMw = new MavlinkMessageWrapper(rcMsg);
         rcMw.setMavLinkMessage(rcMsg);
         ExperimentalApi.sendMavlinkMessage(getDrone(), rcMw);
-
     }
+
 }

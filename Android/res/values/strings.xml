@@ -579,5 +579,6 @@
         completions."
     </string>
     <string name="title_activity_o2o">O2oActivity</string>
+    <string name="title_activity_select_bluetooth_device">SelectBluetoothDeviceActivity</string>
 
 </resources>

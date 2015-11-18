@@ -140,6 +140,11 @@
         </activity>
         <activity android:name=".ruan.RcSettingActivity" >
         </activity>
+        <activity
+            android:name=".ruan.SelectBluetoothDeviceActivity"
+            android:label="@string/title_activity_select_bluetooth_device"
+            android:theme="@style/CustomActionBarTheme" >
+        </activity>
     </application>
 
 </manifest>

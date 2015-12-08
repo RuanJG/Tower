@@ -119,6 +119,8 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
 
     private  msg_rc_channels_override mRcOverridePacket;
 
+    private final int mModeForConnect = GCS_ID;//GCS_ID local send, TELEM_ID telem, WIFI_ID wifi
+
     IRcOutputListen seekBarListen = new IRcOutputListen() {
         @Override
         public boolean doSetRcValue(int id, int value) {
@@ -230,13 +232,14 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
         }
         m4gCheckBox = (CheckBox) this.getActivity().findViewById(R.id.box_4g_checkBox);
         if( m4gCheckBox != null ) {
-            //m4gCheckBox.setOnClickListener(this);
+            m4gCheckBox.setOnClickListener(this);
+            /*
             m4gCheckBox.setOnCheckedChangeListener(new CheckBox.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    doTriggle4gConnect(isChecked);
+                    //doTriggle4gConnect(isChecked);
                 }
-            });
+            });*/
         }
 
 
@@ -321,6 +324,9 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
                 i = new Intent(this.getContext(),O2oActivity.class);
                 startActivityForResult(i, O2O_ACTIVITY_ADDR_RESULT_CODE);
                 break;
+            case R.id.box_4g_checkBox:
+                doTriggle4gConnect();
+                break;
             default:
                 eventBuilder = null;
                 break;
@@ -330,7 +336,23 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
             GAUtils.sendEvent(eventBuilder);
         }
     }
+    /*
+    int mConnectMode
+    private final int  modeLocal4G
+    private boolean isUsingLocal4GConnect()
+    {
 
+    }*/
+    private void doTriggle4gConnect()
+    {
+        if( m4gCheckBox.isChecked() ){
+            mega2560WifiSetServer(dpPrefs.getTcpServerIp(),dpPrefs.getTcpServerPort());
+            mega2560WifiConnect();
+        }else{
+            alertUser("4g is no checked");
+            mega2560WifiDisconnect();
+        }
+    }
     private void doTriggle4gConnect(boolean callConnect)
     {
         if( callConnect ){
@@ -356,6 +378,7 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
         if( mConnectingTypeText != null){
             if(isWifiConnecting()) mConnectingTypeText.setText("Using 4G");
             if(isTelemConnecting()) mConnectingTypeText.setText("Using Radio");
+            if( mModeForConnect == GCS_ID ) mConnectingTypeText.setText("Using Local 4G");
         }
     }
     private void onActivityPathChanged()
@@ -542,18 +565,22 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
                     ip = data.getStringExtra("ip");
                 if( ip != null && !ip.equals(O2oActivity.UNVARLID_IP)){
                     doSetIpToDrone(ip);
-                    /*
-                    dpPrefs.setConnectionParameterType(ConnectionType.TYPE_TCP);
-                    final int connectionType = dpPrefs.getConnectionParameterType();
-                    if( (connectionType == ConnectionType.TYPE_TCP || connectionType == ConnectionType.TYPE_UDP)
-                            && dpPrefs.getTcpServerIp().equals(ip)
-                            &&  ! getDrone().isConnected()){
-                        ((SuperUI) getActivity()).toggleDroneConnection();
-                        DroidPlannerApp dpApp =(DroidPlannerApp)this.getActivity().getApplication();
-                        dpApp.connectToDrone();
-                    }*/
-                    mega2560WifiSetServer(ip,dpPrefs.getTcpServerPort());
+                    if( mModeForConnect == GCS_ID) {
+                        dpPrefs.setConnectionParameterType(ConnectionType.TYPE_TCP);
+                        final int connectionType = dpPrefs.getConnectionParameterType();
+                        if ((connectionType == ConnectionType.TYPE_TCP || connectionType == ConnectionType.TYPE_UDP)
+                                && dpPrefs.getTcpServerIp().equals(ip)
+                                && !getDrone().isConnected()) {
+                            ((SuperUI) getActivity()).toggleDroneConnection();
+                            DroidPlannerApp dpApp = (DroidPlannerApp) this.getActivity().getApplication();
+                            dpApp.connectToDrone();
+                        }
+                    }else {
+                        mega2560WifiSetServer(ip, dpPrefs.getTcpServerPort());
+                        mega2560WifiConnect();
+                    }
                 }
+                break;
             }
             default:
                 super.onActivityResult(requestCode, resultCode, data);
@@ -568,6 +595,22 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
         //i.putExtra(CameraJostickName, CameraJostickBtName);
         i.putExtra(jostickName, jostickBtName);
         startActivityForResult(i, FindBluetoothDevicesActivity.REQUEST_BLE_ADDR_CODE);
+    }
+
+    private  void doSendRcOverrideByLocal()
+    {
+        com.MAVLink.common.msg_rc_channels_override rcMsg =new com.MAVLink.common.msg_rc_channels_override() ;
+        rcMsg.chan1_raw = (short)getSeekBarByRcId(0).getProcess();
+        rcMsg.chan2_raw = (short)getSeekBarByRcId(1).getProcess();
+        rcMsg.chan3_raw = (short)getSeekBarByRcId(2).getProcess();
+        rcMsg.chan4_raw = (short)getSeekBarByRcId(3).getProcess();
+        rcMsg.chan5_raw = (short)getSeekBarByRcId(4).getProcess();
+        rcMsg.chan6_raw = (short)getSeekBarByRcId(5).getProcess();
+        rcMsg.chan7_raw = (short)getSeekBarByRcId(6).getProcess();
+
+        MavlinkMessageWrapper rcMw = new MavlinkMessageWrapper(rcMsg);
+        rcMw.setMavLinkMessage(rcMsg);
+        ExperimentalApi.sendMavlinkMessage(getDrone(), rcMw);
     }
 
 
@@ -695,6 +738,7 @@ struct param_ip_data{
                     mega2560ConnectStatus = (short) msg.chan3_raw;
                     mega2560ActivityPath = (short) msg.chan4_raw;
                 }
+                mRcOverridePacket = null;
             }else{
                 mRcOverridePacket = msg;//this msg is for rc
             }
@@ -717,7 +761,7 @@ struct param_ip_data{
                 if( isJostickDisconnected())
                     doJostickConnect();
             }
-        }, 0, 500, TimeUnit.MILLISECONDS);
+        }, 0, 1000, TimeUnit.MILLISECONDS);
     }
     private void stopConnectUartThread()
     {
@@ -741,6 +785,9 @@ struct param_ip_data{
             }
             onActivityPathChanged();
             onConnectStatusChanged();
+            if( mModeForConnect == GCS_ID){
+                doSendRcOverrideByLocal();
+            }
         }else if( msg.getData().getString("id").equals("onConnect") ){
             alertUser("Uart connected");
         }else if( msg.getData().getString("id").equals("onComError") ){

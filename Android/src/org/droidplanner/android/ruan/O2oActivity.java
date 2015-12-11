@@ -53,9 +53,13 @@ public class O2oActivity extends AppCompatActivity {
     private EditText copterId;
     private TextView o2otime;
 
+    private EditText numberText;
+
     private Thread tcpThread = null;
     private boolean threadQuit = false;
 
+    public static final int O2O_ACTIVITY_ADDR_RESULT_CODE = 30;
+    public static final int O2O_ACTIVITY_NUMBER_RESULT_CODE = 31;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -98,6 +102,15 @@ public class O2oActivity extends AppCompatActivity {
         copterId = (EditText) findViewById(R.id.copter_id);
         o2otime = (TextView) findViewById(R.id.o2otime);
 
+        Button btn = (Button) findViewById(R.id.id_2g_call_btn);
+        if( btn != null )
+            btn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    returnNumberandDoConnect();
+                }
+            });
+        numberText = (EditText)findViewById(R.id.id_copter_2g_number);
         //tcpThread = new Thread(tcpRunner);
         updateCopterStatusFromO2oServicer();
 
@@ -115,7 +128,16 @@ public class O2oActivity extends AppCompatActivity {
     private void returnIpandDoConnect() {
         Intent resultIntent = new Intent();
         resultIntent.putExtra("ip",ipTextView.getText().toString());
-        setResult(RcFragment.O2O_ACTIVITY_ADDR_RESULT_CODE , resultIntent);
+        setResult(O2O_ACTIVITY_ADDR_RESULT_CODE , resultIntent);
+        finish();
+    }
+
+    private void returnNumberandDoConnect()
+    {
+        Intent resultIntent = new Intent();
+        resultIntent.putExtra("ip",UNVARLID_IP);
+        resultIntent.putExtra("number",numberText.getText().toString());
+        setResult(O2O_ACTIVITY_NUMBER_RESULT_CODE , resultIntent);
         finish();
     }
 

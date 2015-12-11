@@ -92,5 +92,22 @@
             android:id="@+id/id_scan_progress_bar"
             android:visibility="invisible"/>
     </LinearLayout>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Phone number:"/>
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+        <EditText
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:id="@+id/id_copter_2g_number"/>
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/id_2g_call_btn"
+            android:text="Call"/>
+    </LinearLayout>
 
 </LinearLayout>

@@ -84,7 +84,7 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
     //private DroidPlannerApp dpApp;
     private DroidPlannerPrefs dpPrefs;
     Router4GFindWanIp m4GIpRouter;
-    public static final int O2O_ACTIVITY_ADDR_RESULT_CODE = 30;
+
     public static final int Rc_Settings_RESULT_CODE = 40;
     private static final int MAX_RC_COUNT =8;
 
@@ -115,11 +115,15 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
     private final int    MEGA2560_BOARD_CMD_SWITCH_CONNECT = 5;
     private final int    MEGA2560_BOARD_CMD_MAX_ID=6;
     private final int    GCS_CMD_REPORT_STATUS =7;
-    private final int    GCS_CMD_MAX_ID=8;
+    private final int    MEGA2560_BOARD_CMD_2G_CONNECT = 8;
+    private final int    MEGA2560_BOARD_CMD_2G_DISCONNECT = 9;
+    private final int    MEGA2560_BOARD_CMD_2G_SEND_DTMF=10;
+    private final int    GCS_CMD_MAX_ID=11;
 
     private  msg_rc_channels_override mRcOverridePacket;
 
     private final int mModeForConnect = GCS_ID;//GCS_ID local send, TELEM_ID telem, WIFI_ID wifi
+    private final boolean m2gConnectStatus = false;
 
     IRcOutputListen seekBarListen = new IRcOutputListen() {
         @Override
@@ -322,7 +326,7 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
             case R.id.box_buttonO2oIp:
                 Intent i;
                 i = new Intent(this.getContext(),O2oActivity.class);
-                startActivityForResult(i, O2O_ACTIVITY_ADDR_RESULT_CODE);
+                startActivityForResult(i, O2oActivity.O2O_ACTIVITY_ADDR_RESULT_CODE);
                 break;
             case R.id.box_4g_checkBox:
                 doTriggle4gConnect();
@@ -559,28 +563,40 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (requestCode) {
-            case O2O_ACTIVITY_ADDR_RESULT_CODE:{
-                String ip = null;
-                if( data != null)
-                    ip = data.getStringExtra("ip");
-                if( ip != null && !ip.equals(O2oActivity.UNVARLID_IP)){
-                    doSetIpToDrone(ip);
-                    if( mModeForConnect == GCS_ID) {
-                        dpPrefs.setConnectionParameterType(ConnectionType.TYPE_TCP);
-                        final int connectionType = dpPrefs.getConnectionParameterType();
-                        if ((connectionType == ConnectionType.TYPE_TCP || connectionType == ConnectionType.TYPE_UDP)
-                                && dpPrefs.getTcpServerIp().equals(ip)
-                                && !getDrone().isConnected()) {
-                            ((SuperUI) getActivity()).toggleDroneConnection();
-                            DroidPlannerApp dpApp = (DroidPlannerApp) this.getActivity().getApplication();
-                            dpApp.connectToDrone();
+            case O2oActivity.O2O_ACTIVITY_ADDR_RESULT_CODE:{
+                if( resultCode == O2oActivity.O2O_ACTIVITY_ADDR_RESULT_CODE ) {
+                    String ip = null;
+                    if( data != null)
+                        ip = data.getStringExtra("ip");
+                    if( ip != null && !ip.equals(O2oActivity.UNVARLID_IP)){
+                        doSetIpToDrone(ip);
+                        if( mModeForConnect == GCS_ID) {
+                            dpPrefs.setConnectionParameterType(ConnectionType.TYPE_TCP);
+                            final int connectionType = dpPrefs.getConnectionParameterType();
+                            if ((connectionType == ConnectionType.TYPE_TCP || connectionType == ConnectionType.TYPE_UDP)
+                                    && dpPrefs.getTcpServerIp().equals(ip)
+                                    && !getDrone().isConnected()) {
+                                ((SuperUI) getActivity()).toggleDroneConnection();
+                                DroidPlannerApp dpApp = (DroidPlannerApp) this.getActivity().getApplication();
+                                dpApp.connectToDrone();
+                            }
+                        }else {
+                            mega2560WifiSetServer(ip, dpPrefs.getTcpServerPort());
+                            mega2560WifiConnect();
                         }
-                    }else {
-                        mega2560WifiSetServer(ip, dpPrefs.getTcpServerPort());
-                        mega2560WifiConnect();
                     }
+                    break;
+
+                }else if(resultCode == O2oActivity.O2O_ACTIVITY_NUMBER_RESULT_CODE ){
+                    String num = null;
+                    byte[] numArry = new byte[11];
+                    if( data != null)
+                        num = data.getStringExtra("number");
+                    if( num != null && num.length()==11) {
+                        setMega2560CallNumber(num);
+                    }
+                    break;
                 }
-                break;
             }
             default:
                 super.onActivityResult(requestCode, resultCode, data);
@@ -607,6 +623,7 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
         rcMsg.chan5_raw = (short)getSeekBarByRcId(4).getProcess();
         rcMsg.chan6_raw = (short)getSeekBarByRcId(5).getProcess();
         rcMsg.chan7_raw = (short)getSeekBarByRcId(6).getProcess();
+        rcMsg.chan8_raw = (short)getSeekBarByRcId(7).getProcess();
 
         MavlinkMessageWrapper rcMw = new MavlinkMessageWrapper(rcMsg);
         rcMw.setMavLinkMessage(rcMsg);
@@ -676,19 +693,19 @@ struct param_ip_data{
         rcMsg.chan5_raw =  ip[2];
         rcMsg.chan6_raw =  ip[3];
         rcMsg.chan7_raw = (short) port;
-        sendMavlinkMsg(rcMsg.pack());
+        sendJostickMavlinkMsg(rcMsg.pack());
     }
     private void mega2560WifiConnect(){
         com.MAVLinks.common.msg_rc_channels_override rcMsg=new com.MAVLinks.common.msg_rc_channels_override() ;
         rcMsg.chan1_raw= MEGA2560_SYS_ID;
         rcMsg.chan2_raw = MEGA2560_BOARD_CMD_WIFI_CONNECT_TCP;
-        sendMavlinkMsg(rcMsg.pack());
+        sendJostickMavlinkMsg(rcMsg.pack());
     }
     private void mega2560WifiDisconnect(){
         com.MAVLinks.common.msg_rc_channels_override rcMsg=new com.MAVLinks.common.msg_rc_channels_override() ;
         rcMsg.chan1_raw= MEGA2560_SYS_ID;
         rcMsg.chan2_raw = MEGA2560_BOARD_CMD_WIFI_DISCONNECT_TCP;
-        sendMavlinkMsg(rcMsg.pack());
+        sendJostickMavlinkMsg(rcMsg.pack());
     }
 
     /*
@@ -703,18 +720,44 @@ struct param_ip_data{
         rcMsg.chan1_raw= MEGA2560_SYS_ID;
         rcMsg.chan2_raw = MEGA2560_BOARD_CMD_SWITCH_CONNECT;
         rcMsg.chan3_raw = (short)way;
-        sendMavlinkMsg(rcMsg.pack());
+        sendJostickMavlinkMsg(rcMsg.pack());
     }
 
+    private void setMega2560CallNumber(String number)
+    {
+        byte[] numArry = new byte[11];
+        if( number != null && number.length()==11) {
+            alertUser("call number " + number);
+            numArry = number.getBytes();
+
+            com.MAVLinks.common.msg_rc_channels_override rcMsg=new com.MAVLinks.common.msg_rc_channels_override() ;
+            rcMsg.chan1_raw= MEGA2560_SYS_ID;
+            rcMsg.chan2_raw = MEGA2560_BOARD_CMD_2G_CONNECT;
+            rcMsg.chan3_raw =  (numArry[0] | (numArry[1]<<8) );
+            rcMsg.chan4_raw =  (numArry[2] | (numArry[3]<<8) );
+            rcMsg.chan5_raw =  (numArry[4] | (numArry[5]<<8) );
+            rcMsg.chan6_raw =  (numArry[6] | (numArry[7]<<8) );
+            rcMsg.chan7_raw = (numArry[8] | (numArry[9]<<8) );
+            rcMsg.chan8_raw = (numArry[10]);
+            sendJostickMavlinkMsg(rcMsg.pack());
+        }
+    }
+    private void setMega2560Disconnect2G()
+    {
+            com.MAVLinks.common.msg_rc_channels_override rcMsg=new com.MAVLinks.common.msg_rc_channels_override() ;
+            rcMsg.chan1_raw= MEGA2560_SYS_ID;
+            rcMsg.chan2_raw = MEGA2560_BOARD_CMD_2G_DISCONNECT;
+            sendJostickMavlinkMsg(rcMsg.pack());
+    }
     private void mega2560Ask()
     {
         com.MAVLinks.common.msg_rc_channels_override rcMsg=new com.MAVLinks.common.msg_rc_channels_override() ;
         rcMsg.chan1_raw= MEGA2560_SYS_ID;
         rcMsg.chan2_raw = MEGA2560_BOARD_CMD_MAX_ID;
-        sendMavlinkMsg(rcMsg.pack());
+        sendJostickMavlinkMsg(rcMsg.pack());
     }
 
-    private void sendMavlinkMsg(com.MAVLinks.MAVLinkPacket pack)
+    private void sendJostickMavlinkMsg(com.MAVLinks.MAVLinkPacket pack)
     {
         /*
         MavlinkMessageWrapper rcMw = new MavlinkMessageWrapper(Msg);

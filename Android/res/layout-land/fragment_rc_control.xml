@@ -10,8 +10,8 @@
         android:orientation="horizontal"
         >
         <FrameLayout
-        android:layout_width="320dp"
-        android:layout_height="240dp"
+        android:layout_width="2dp"
+        android:layout_height="2dp"
         android:id="@+id/vlcVideoView"
         />
 
@@ -36,6 +36,11 @@
                     android:id="@+id/videoAddrText"
                     android:layout_gravity="center_horizontal"
                     android:focusableInTouchMode="true" />
+                <Button
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/buttonBleCopter"
+                    android:text="copter connect"/>
             </LinearLayout>
         <Space
             android:layout_width="5dp"
@@ -211,11 +216,7 @@
                 android:layout_height="wrap_content"
                 android:id="@+id/buttonBleCamera"
                 android:text="camera connect"/>
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/buttonBleCopter"
-                android:text="copter connect"/>
+
             <Button
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

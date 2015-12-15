@@ -27,6 +27,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.MAVLink.Messages.MAVLinkMessage;
+import com.MAVLink.common.msg_log_data;
 import com.MAVLinks.MAVLinkPacket;
 import com.MAVLinks.common.msg_rc_channels_override;
 import com.google.android.gms.analytics.HitBuilders;
@@ -118,9 +119,11 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
     private final int    MEGA2560_BOARD_CMD_2G_CONNECT = 8;
     private final int    MEGA2560_BOARD_CMD_2G_DISCONNECT = 9;
     private final int    MEGA2560_BOARD_CMD_2G_SEND_DTMF=10;
-    private final int    GCS_CMD_MAX_ID=11;
+    private final int    MEGA2560_BOARD_CMD_2G_SEND_LOG = 11;
+    private final int    GCS_CMD_MAX_ID=12;
 
     private  msg_rc_channels_override mRcOverridePacket;
+    private String log2G;
 
     private final int mModeForConnect = GCS_ID;//GCS_ID local send, TELEM_ID telem, WIFI_ID wifi
     private final boolean m2gConnectStatus = false;
@@ -268,9 +271,6 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
         mDistanceText = (TextView) this.getActivity().findViewById(R.id.box_distan_text);
         set4gDistance(MAX_RADIO_DISTANCE);
 
-
-
-
         /*
         m4GIpRouter = new Router4GFindWanIp(mHandler);
         Button btn3 = (Button) this.getActivity().findViewById(R.id.buttonSetIp);
@@ -278,6 +278,7 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
             btn3.setOnClickListener(this);
             */
 
+        setup2GJostickButtons();
 
         if( isJostickDisconnected() ) doJostickConnect();
     }
@@ -330,6 +331,22 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
                 break;
             case R.id.box_4g_checkBox:
                 doTriggle4gConnect();
+                break;
+            case R.id.id_jostick_arm_btn:
+            case R.id.id_jostick_takeoff_btn:
+            case R.id.id_jostick_stop_btn:
+            case R.id.id_jostick_call_btn:
+            case R.id.id_jostick_thr_down_btn:
+            case R.id.id_jostick_thr_up_btn:
+            case R.id.id_jostick_yaw_left_btn:
+            case R.id.id_jostick_yaw_right_btn:
+            case R.id.id_jostick_speed_add_btn:
+            case R.id.id_jostick_speed_sub_btn:
+            case R.id.id_jostick_roll_left_btn:
+            case R.id.id_jostick_roll_right_btn:
+            case R.id.id_jostick_pitch_down_btn:
+            case R.id.id_jostick_pitch_up_btn:
+                handleJostickButtons(v.getId());
                 break;
             default:
                 eventBuilder = null;
@@ -749,6 +766,14 @@ struct param_ip_data{
             rcMsg.chan2_raw = MEGA2560_BOARD_CMD_2G_DISCONNECT;
             sendJostickMavlinkMsg(rcMsg.pack());
     }
+    private void setMega2560Send2GDTMF(char dtmf)
+    {
+        com.MAVLinks.common.msg_rc_channels_override rcMsg=new com.MAVLinks.common.msg_rc_channels_override() ;
+        rcMsg.chan1_raw= MEGA2560_SYS_ID;
+        rcMsg.chan2_raw = MEGA2560_BOARD_CMD_2G_SEND_DTMF;
+        rcMsg.chan3_raw = dtmf & 0xff;
+        sendJostickMavlinkMsg(rcMsg.pack());
+    }
     private void mega2560Ask()
     {
         com.MAVLinks.common.msg_rc_channels_override rcMsg=new com.MAVLinks.common.msg_rc_channels_override() ;
@@ -775,20 +800,19 @@ struct param_ip_data{
     private void Mega2560MavlinkHandler(MAVLinkPacket packet)
     {
         if( packet.msgid == msg_rc_channels_override.MAVLINK_MSG_ID_RC_CHANNELS_OVERRIDE) {
-            msg_rc_channels_override msg = new msg_rc_channels_override(packet);
-            if( msg.chan1_raw == MEGA2560_SYS_ID ){
-                if( msg.chan2_raw == GCS_CMD_REPORT_STATUS){
-                    mega2560ConnectStatus = (short) msg.chan3_raw;
-                    mega2560ActivityPath = (short) msg.chan4_raw;
+            mRcOverridePacket = new msg_rc_channels_override(packet);
+            if( mRcOverridePacket.chan1_raw == MEGA2560_SYS_ID ){
+                if( mRcOverridePacket.chan2_raw == GCS_CMD_REPORT_STATUS){
+                    mega2560ConnectStatus = (short) mRcOverridePacket.chan3_raw;
+                    mega2560ActivityPath = (short) mRcOverridePacket.chan4_raw;
                 }
-                mRcOverridePacket = null;
+                checkAndHandle2GCmdMessage(mRcOverridePacket);
             }else{
-                mRcOverridePacket = msg;//this msg is for rc
+                ;//mRcOverridePacket = msg;//this msg is for rc
             }
+
         }
     }
-
-
 
 
 
@@ -816,7 +840,7 @@ struct param_ip_data{
     private void doHandleJostickMessage(Message msg)
     {
         if( msg.getData().getString("id").equals("onReceivePacket")){
-            if( mRcOverridePacket != null){
+            if( mRcOverridePacket != null && mRcOverridePacket.chan1_raw != MEGA2560_SYS_ID ){
                 onRcChanged(0,mRcOverridePacket.chan1_raw);
                 onRcChanged(1,mRcOverridePacket.chan2_raw);
                 onRcChanged(2,mRcOverridePacket.chan3_raw);
@@ -824,19 +848,22 @@ struct param_ip_data{
                 onRcChanged(4,mRcOverridePacket.chan5_raw);
                 onRcChanged(5,mRcOverridePacket.chan6_raw);
                 onRcChanged(6,mRcOverridePacket.chan7_raw);
-                onRcChanged(7,mRcOverridePacket.chan8_raw);
+                onRcChanged(7, mRcOverridePacket.chan8_raw);
             }
             onActivityPathChanged();
             onConnectStatusChanged();
             if( mModeForConnect == GCS_ID){
                 doSendRcOverrideByLocal();
             }
+            on2GLogChange();
         }else if( msg.getData().getString("id").equals("onConnect") ){
             alertUser("Uart connected");
         }else if( msg.getData().getString("id").equals("onComError") ){
             alertUser("Uart onComError");
         }
     }
+
+
     private  MavLinkConnectionListener mUartlistener=new MavLinkConnectionListener() {
         @Override
         public void onStartingConnection() {
@@ -963,4 +990,185 @@ struct param_ip_data{
         }
     }
 
+//######################################################################  2G jostick function
+    private boolean callConnectStatus = false;
+    private int currentCopterSpeed = 200;
+    private char ROLL_LEFT_DTMF = '0';
+    private char ROLL_RIGHT_DTMF = '1';
+    private char PITCH_UP_DTMF = '2';
+    private char PITCH_DOWN_DTMF = '3';
+    private char THR_UP_DTMF = '4';
+    private char THR_DOWN_DTMF = '5';
+    private char YAW_LEFT_DTMF = '6';
+    private char YAW_RIGHT_DTMF = '7';
+    private char STOP_DTMF = '8';
+    private char ARM_DTMF = '9';
+    private char TAKEOFF_DTMF = '*';
+    private char SPEED_ADD_DTMF = 'A';
+    private char SPEED_SUB_DTMF = 'B';
+
+    private void setup2GJostickButtons()
+    {
+        Button btn;
+        btn = (Button) this.getActivity().findViewById(R.id.id_jostick_arm_btn);
+        if(btn != null ) btn.setOnClickListener(this);
+        btn = (Button) this.getActivity().findViewById(R.id.id_jostick_takeoff_btn);
+        if(btn != null ) btn.setOnClickListener(this);
+        btn = (Button) this.getActivity().findViewById(R.id.id_jostick_stop_btn);
+        if(btn != null ) btn.setOnClickListener(this);
+        btn = (Button) this.getActivity().findViewById(R.id.id_jostick_call_btn);
+        if(btn != null ) btn.setOnClickListener(this);
+        btn = (Button) this.getActivity().findViewById(R.id.id_jostick_thr_down_btn);
+        if(btn != null ) btn.setOnClickListener(this);
+        btn = (Button) this.getActivity().findViewById(R.id.id_jostick_thr_up_btn);
+        if(btn != null ) btn.setOnClickListener(this);
+        btn = (Button) this.getActivity().findViewById(R.id.id_jostick_yaw_left_btn);
+        if(btn != null ) btn.setOnClickListener(this);
+        btn = (Button) this.getActivity().findViewById(R.id.id_jostick_yaw_right_btn);
+        if(btn != null ) btn.setOnClickListener(this);
+        btn = (Button) this.getActivity().findViewById(R.id.id_jostick_pitch_down_btn);
+        if(btn != null ) btn.setOnClickListener(this);
+        btn = (Button) this.getActivity().findViewById(R.id.id_jostick_pitch_up_btn);
+        if(btn != null ) btn.setOnClickListener(this);
+        btn = (Button) this.getActivity().findViewById(R.id.id_jostick_roll_left_btn);
+        if(btn != null ) btn.setOnClickListener(this);
+        btn = (Button) this.getActivity().findViewById(R.id.id_jostick_roll_right_btn);
+        if(btn != null ) btn.setOnClickListener(this);
+
+        btn = (Button) this.getActivity().findViewById(R.id.id_jostick_speed_add_btn);
+        if(btn != null ) btn.setOnClickListener(this);
+        btn = (Button) this.getActivity().findViewById(R.id.id_jostick_speed_sub_btn);
+        if(btn != null ) btn.setOnClickListener(this);
+
+        btn = (Button) this.getActivity().findViewById(R.id.id_jostick_speed_text);
+        if(btn != null) btn.setText(currentCopterSpeed+"");
+
+    }
+
+    private void handleJostickButtons(int viewId)
+    {
+        switch ( viewId ){
+            case R.id.id_jostick_arm_btn:
+                triggle2gArm();
+                break;
+            case R.id.id_jostick_takeoff_btn:
+                triggle2gTakeoff();
+                break;
+            case R.id.id_jostick_stop_btn:
+                triggle2gHoldOn();
+                break;
+            case R.id.id_jostick_call_btn:
+                triggle2gCall();
+                break;
+            case R.id.id_jostick_speed_sub_btn:
+                triggle2gSpeedSub();
+                break;
+            case R.id.id_jostick_speed_add_btn:
+                triggle2gSpeedAdd();
+                break;
+            case R.id.id_jostick_thr_up_btn:
+                setMega2560Send2GDTMF(THR_UP_DTMF);
+                break;
+            case R.id.id_jostick_thr_down_btn:
+                setMega2560Send2GDTMF(THR_DOWN_DTMF);
+                break;
+            case R.id.id_jostick_yaw_left_btn:
+                setMega2560Send2GDTMF(YAW_LEFT_DTMF);
+                break;
+            case R.id.id_jostick_yaw_right_btn:
+                setMega2560Send2GDTMF(YAW_RIGHT_DTMF);
+                break;
+            case R.id.id_jostick_roll_left_btn:
+                setMega2560Send2GDTMF(ROLL_LEFT_DTMF);
+                break;
+            case R.id.id_jostick_roll_right_btn:
+                setMega2560Send2GDTMF(ROLL_RIGHT_DTMF);
+                break;
+
+            case R.id.id_jostick_pitch_up_btn:
+                setMega2560Send2GDTMF(PITCH_UP_DTMF);
+                break;
+            case R.id.id_jostick_pitch_down_btn:
+                setMega2560Send2GDTMF(PITCH_DOWN_DTMF);
+                break;
+        }
+    }
+
+    private void triggle2gSpeedAdd() {
+        setMega2560Send2GDTMF(SPEED_ADD_DTMF);
+    }
+
+    private void triggle2gSpeedSub() {
+        setMega2560Send2GDTMF(SPEED_SUB_DTMF);
+    }
+
+    private void triggle2gCall() {
+        EditText et = (EditText)this.getActivity().findViewById(R.id.id_jostick_phone_number_text);
+        String num = et.getText().toString();
+        if( num != null && num.length()==11) {
+            if( callConnectStatus ) {
+                setMega2560Disconnect2G();
+                callConnectStatus = false;
+            }else {
+                setMega2560CallNumber(num);
+                callConnectStatus = true;
+            }
+        }else{
+            showUser("wrong number ,fill number or check it ");
+        }
+    }
+
+    private void triggle2gHoldOn() {
+        setMega2560Send2GDTMF(STOP_DTMF);
+    }
+
+    private void triggle2gTakeoff() {
+        setMega2560Send2GDTMF(TAKEOFF_DTMF);
+    }
+
+    private void triggle2gArm() {
+        setMega2560Send2GDTMF(ARM_DTMF);
+    }
+
+
+    private void checkAndHandle2GCmdMessage(msg_rc_channels_override msg) {
+        if( msg.chan1_raw == MEGA2560_SYS_ID ){
+            if( msg.chan2_raw == MEGA2560_BOARD_CMD_2G_SEND_DTMF) {
+
+            }else if(msg.chan2_raw == MEGA2560_BOARD_CMD_2G_SEND_LOG ){
+                display2gLog(msg);
+            }
+        }
+    }
+
+    private void display2gLog(msg_rc_channels_override msg) {
+        char[] logs = new char[12];
+        int len;
+        len = msg.chan3_raw & 0xff;
+        logs[0]= (char) ((msg.chan3_raw >> 8) & 0xff);
+        logs[1]= (char) ((msg.chan4_raw) & 0xff);
+        logs[2]= (char) ((msg.chan4_raw >> 8) & 0xff);
+        logs[3]= (char) ((msg.chan5_raw) & 0xff);
+        logs[4]= (char) ((msg.chan5_raw >> 8) & 0xff);
+        logs[5]= (char) ((msg.chan6_raw ) & 0xff);
+        logs[6]= (char) ((msg.chan6_raw >> 8) & 0xff);
+        logs[7]= (char) ((msg.chan7_raw) & 0xff);
+        logs[8]= (char) ((msg.chan7_raw >> 8) & 0xff);
+        logs[9]= (char) ((msg.chan8_raw ) & 0xff);
+        logs[10]= (char) ((msg.chan8_raw >> 8) & 0xff);
+
+        log2G="";
+        for( int i =0 ; i< len; i++) log2G+=logs[i];
+        log2G+=len;
+        log2G+='\n';
+    }
+    private void on2GLogChange() {
+        if( log2G != null){
+            EditText cns = (EditText) this.getActivity().findViewById(R.id.id_jostick_console);
+            if( cns != null ){
+                cns.append(log2G);
+            }
+        }
+        log2G = null;
+    }
 }

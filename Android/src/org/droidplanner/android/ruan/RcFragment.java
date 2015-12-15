@@ -26,18 +26,12 @@ import com.MAVLinks.MAVLinkPacket;
 import com.MAVLinks.common.msg_rc_channels_override;
 import com.google.android.gms.analytics.HitBuilders;
 import com.o3dr.android.client.Drone;
-import com.o3dr.android.client.apis.drone.ExperimentalApi;
 import com.o3dr.services.android.lib.drone.attribute.AttributeEvent;
 import com.o3dr.services.android.lib.drone.attribute.AttributeType;
 import com.o3dr.services.android.lib.drone.connection.ConnectionType;
-import com.o3dr.services.android.lib.drone.property.Gps;
-import com.o3dr.services.android.lib.drone.property.Home;
 import com.o3dr.services.android.lib.drone.property.State;
 import com.o3dr.services.android.lib.drone.property.VehicleMode;
-import com.o3dr.services.android.lib.mavlink.MavlinkMessageWrapper;
-import com.o3dr.services.android.lib.util.MathUtils;
 
-import org.beyene.sius.unit.length.LengthUnit;
 import org.droidplanner.android.DroidPlannerApp;
 import org.droidplanner.android.R;
 import org.droidplanner.android.activities.helpers.SuperUI;
@@ -45,7 +39,6 @@ import org.droidplanner.android.fragments.helpers.ApiListenerFragment;
 import org.droidplanner.android.utils.analytics.GAUtils;
 import org.droidplanner.android.utils.prefs.DroidPlannerPrefs;
 
-import java.net.InetAddress;
 import java.util.Arrays;
 
 import org.ruan.connection.BluetoothConnection;
@@ -77,7 +70,7 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
     //private DroidPlannerApp dpApp;
     private DroidPlannerPrefs dpPrefs;
 
-    private final static String CopterJostickBtName="autopilot";//"copterJostick";
+    private final static String CopterJostickBtName="copterJostick";
     private final static String CameraJostickBtName="cameraJostick";
     public final static String CopterJostickName="copterJ";
     public final static String CameraJostickName="cameraJ";
@@ -90,7 +83,7 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
     Router4GFindWanIp m4GIpRouter;
 
     public static final int O2O_ACTIVITY_ADDR_RESULT_CODE = 30;
-    public static final int Rc_Settings_RESULT_CODE = 40;
+    public static final int O2O_ACTIVITY_NUMBER_RESULT_CODE = 31;
 
     IRcOutputListen seekBarListen = new IRcOutputListen() {
         @Override
@@ -150,9 +143,6 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
         Log.d(TAG, msg);
         //mStatusText.setText(msg);
         ;
-    }
-    private void showUser(String message){
-        Toast.makeText(this.getActivity().getApplicationContext(), message, Toast.LENGTH_SHORT).show();
     }
 
 
@@ -288,16 +278,13 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
                 }
                 break;
             case R.id.videoPlayBtn:
-                if( mVlcVideo.isPlaying()){
+                if( mVlcVideo!= null && mVlcVideo.isPlaying()){
                     stopPlayVideo();
                 }else{
                     startPlayVideo();
                 }
                 break;
             case R.id.buttonBleCopter:
-                mega2560WifiConnect();
-                break;
-            /*
                 if( mCopterBleJostick == null){
                     findAndConnectBleJostick(CopterJostickName, CopterJostickBtName);
                 }else{
@@ -307,19 +294,15 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
                         mCopterBleJostick.doJostickDisconnect();
                     }
                 }
-                break;*/
+                break;
             case R.id.buttonSetIp:
-                mega2560WifiSetServer("192.168.1.108",6666);
-                mega2560SwitchConnectWay(2);
-                //m4GIpRouter.doGetIp();
+                m4GIpRouter.doGetIp();
                 break;
             case R.id.buttonO2oIp:
-                mega2560WifiDisconnect();
+                Intent i;
+                i = new Intent(this.getContext(),O2oActivity.class);
+                startActivityForResult(i, O2O_ACTIVITY_ADDR_RESULT_CODE);
                 break;
-                //Intent i;
-                //i = new Intent(this.getContext(),O2oActivity.class);
-                //startActivityForResult(i, O2O_ACTIVITY_ADDR_RESULT_CODE);
-               // break;
             default:
                 eventBuilder = null;
                 break;
@@ -335,8 +318,8 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
         //mVlcVideo = (VlcVideoFragment) this.getActivity().fragmentManager.findFragmentById(R.id.vlcVideoView);
         if (mVlcVideo == null) {
             debugMsg("vlcvideo is null , create new");
-            mVlcVideo  = new VlcVideoFragment();
-            this.getActivity().getSupportFragmentManager().beginTransaction().add(R.id.vlcVideoView, mVlcVideo).commit();
+            //mVlcVideo  = new VlcVideoFragment();
+            //this.getActivity().getSupportFragmentManager().beginTransaction().add(R.id.vlcVideoView, mVlcVideo).commit();
         }
         if( dpPrefs == null)
         dpPrefs = new DroidPlannerPrefs(this.getContext());
@@ -671,14 +654,6 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
         return mRcOutput.setRcById(id, (short) value);
     }
 
-    private void doRcSeekBarTouch( int id )
-    {
-        Intent i;
-        i = new Intent(this.getContext(),RcSettingActivity.class);
-        //i.putExtra(CameraJostickName, CameraJostickBtName);
-        i.putExtra("id", id);
-        startActivityForResult(i, Rc_Settings_RESULT_CODE);
-    }
     private void initRcSeekBar(){
         rcSeekbarView bar;
         Arrays.fill(keyLockRang, false);
@@ -692,15 +667,6 @@ public class RcFragment  extends ApiListenerFragment  implements View.OnClickLis
             bar.setLockValue(keyLockRang[i]);
             bar.setRcListen(seekBarListen);
             bar.setProcess(rcSeekbarView.mMin);
-            bar.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    //alertUser("rc seekbar click");
-                    rcSeekbarView bar = (rcSeekbarView) v;
-                    doRcSeekBarTouch(bar.getId());
-                }
-            });
-
         }
 
     }
@@ -825,17 +791,6 @@ private void setRcSeekBarTrimValue()
 
     //########################## ble function
     //#### ui even
-    private void doBleSendMavlinkPackage()
-    {
-        com.MAVLinks.common.msg_rc_channels_override rcMsg =new com.MAVLinks.common.msg_rc_channels_override() ;
-        com.MAVLinks.MAVLinkPacket packet;
-
-        rcMsg.chan1_raw= 1;
-        rcMsg.target_component = 0;
-        rcMsg.target_system = 0;
-        packet = rcMsg.pack();
-        mCopterBleJostick.sendMavlinkMessage(packet);
-    }
     private void doHandleBleMessage(Bundle data)
     {
         String id = data.getString("id");
@@ -853,7 +808,7 @@ private void setRcSeekBarTrimValue()
 
         }else if( id.equals("onConnect")){
             onBleConnected(name);
-            doBleSendMavlinkPackage();
+
         } else if (id.equals("onDisconnect")){
             onBleDisconnected(name);
 
@@ -960,6 +915,31 @@ private void setRcSeekBarTrimValue()
                     }
                 }
             }
+            case SelectBluetoothDeviceActivity.REQUEST_SELECT_BT:{
+                if (resultCode == Activity.RESULT_CANCELED) {
+                    break;
+                }
+                if( resultCode == SelectBluetoothDeviceActivity.REQUEST_SELECT_BT){
+                    if( data.getBooleanExtra("res",false) ){
+                        String address;
+                        address = data.getStringExtra("address");
+                        if( address != null ){
+                            if( mCameraBleJostick == null ) {
+                                mCameraBleJostick = new BleJostick(this.getContext(), mHandler, CameraJostickName, address);
+                                mCameraBleJostick.doJostickConnect();
+                            }else if( mCameraBleJostick.isJostickDisconnected()){
+                                mCameraBleJostick.setAddress(address);
+                                mCameraBleJostick.doJostickConnect();
+                            }else{
+                                break;
+                            }
+                        }
+                    }else{
+                        alertUser("Can not find the ble jostick");
+                    }
+                }
+                break;
+            }
             default:
                 super.onActivityResult(requestCode, resultCode, data);
                 break;
@@ -969,112 +949,11 @@ private void setRcSeekBarTrimValue()
     private void findAndConnectBleJostick(String jostickName, String jostickBtName)
     {//use this function when two jostick has their names
         Intent i;
-        i = new Intent(this.getContext(),FindBluetoothDevicesActivity.class);
+        i = new Intent(this.getContext(),SelectBluetoothDeviceActivity.class);
         //i.putExtra(CameraJostickName, CameraJostickBtName);
         i.putExtra(jostickName, jostickBtName);
-        startActivityForResult(i, FindBluetoothDevicesActivity.REQUEST_BLE_ADDR_CODE);
-    }
-
-
-    //#########################################################  box jostick
-    /*
-//sync with tower ,esp8266 and mega2560{
-#define MEGA2560_SYS_ID 254
-enum _GCS_CMDS {
-    MEGA2560_BOARD_CMD_WIFI_CONNECT_TCP =  1,
-    MEGA2560_BOARD_CMD_WIFI_SET_CONNECT_IP,
-    MEGA2560_BOARD_CMD_WIFI_DISCONNECT_TCP,
-    MEGA2560_BOARD_CMD_WIFI_MAX_ID,
-
-    //MEGA2560_BOARD_CMD_CHANGE_PATH
-    //....
-    MEGA2560_BOARD_CMD_MAX_ID
-};
-struct param_ip_data{
-    uint8_t ip[4];
-    uint8_t port[2] ;
-};
-//}
-    */
-    private final int MEGA2560_SYS_ID =254;
-    private final int    MEGA2560_BOARD_CMD_WIFI_CONNECT_TCP=1;
-    private final int    MEGA2560_BOARD_CMD_WIFI_SET_CONNECT_IP =2;
-    private final int    MEGA2560_BOARD_CMD_WIFI_DISCONNECT_TCP=3;
-    private final int    MEGA2560_BOARD_CMD_WIFI_MAX_ID=4;
-
-    private final int    MEGA2560_BOARD_CMD_SWITCH_CONNECT = 5;
-    private final int    MEGA2560_BOARD_CMD_MAX_ID=6;
-
-    public static String binaryArray2Ipv4Address(byte[]addr){
-        String ip="";
-        for(int i=0;i<addr.length;i++){
-            ip+=(addr[i]&0xFF)+".";
-        }
-        return ip.substring(0, ip.length()-1);
-    }
-
-    public static short[] ipv4Address2BinaryArray(String ipAdd){
-        short[] binIP = new short[4];
-        String[] strs = ipAdd.split("\\.");
-        for(int i=0;i<strs.length;i++){
-            Log.e("Ruan",strs[i]);
-            binIP[i] = (short) Integer.parseInt(strs[i]);
-        }
-        return binIP;
-    }
-    private void mega2560WifiSetServer(String ipAddr,int port)
-    {
-        com.MAVLink.common.msg_rc_channels_override rcMsg=new com.MAVLink.common.msg_rc_channels_override() ;
-       boolean isIpValid = true;
- /*        try {
-            byte []tmp = InetAddress.getByName(ipAddr).getAddress();
-            for(int i=0;i<4;i++) ip[i]=(short)tmp[i];
-            alertUser("ip:"+","+ip[0]+","+ip[1]+","+ip[2]+","+ip[3]);
-        } catch (Exception e) {
-            isIpValid = false;
-            alertUser("Ip is invalid");
-        }*/
-        short []ip = ipv4Address2BinaryArray(ipAddr);
-        if( ip.length != 4){
-            alertUser("Ip is invalid");
-            return;
-        }
-        rcMsg.chan1_raw= MEGA2560_SYS_ID;
-        rcMsg.chan2_raw = MEGA2560_BOARD_CMD_WIFI_SET_CONNECT_IP;
-        rcMsg.chan3_raw =  ip[0];
-        rcMsg.chan4_raw =  ip[1];
-        rcMsg.chan5_raw =  ip[2];
-        rcMsg.chan6_raw =  ip[3];
-        rcMsg.chan7_raw = (short) port;
-        sendMavlinkMsg(rcMsg);
-    }
-    private void mega2560WifiConnect(){
-        com.MAVLink.common.msg_rc_channels_override rcMsg=new com.MAVLink.common.msg_rc_channels_override() ;
-        rcMsg.chan1_raw= MEGA2560_SYS_ID;
-        rcMsg.chan2_raw = MEGA2560_BOARD_CMD_WIFI_CONNECT_TCP;
-        sendMavlinkMsg(rcMsg);
-    }
-    private void mega2560WifiDisconnect(){
-        com.MAVLink.common.msg_rc_channels_override rcMsg=new com.MAVLink.common.msg_rc_channels_override() ;
-        rcMsg.chan1_raw= MEGA2560_SYS_ID;
-        rcMsg.chan2_raw = MEGA2560_BOARD_CMD_WIFI_DISCONNECT_TCP;
-        sendMavlinkMsg(rcMsg);
-    }
-
-    private void mega2560SwitchConnectWay(int way)
-    {//uint8_t connectStatus = 1 ; //1= telem ; 2=wifi; 4= 4G , just one use for connect
-        com.MAVLink.common.msg_rc_channels_override rcMsg=new com.MAVLink.common.msg_rc_channels_override() ;
-        rcMsg.chan1_raw= MEGA2560_SYS_ID;
-        rcMsg.chan2_raw = MEGA2560_BOARD_CMD_SWITCH_CONNECT;
-        rcMsg.chan3_raw = (short)way;
-        sendMavlinkMsg(rcMsg);
-    }
-
-    private void sendMavlinkMsg(com.MAVLink.common.msg_rc_channels_override rcMsg)
-    {
-        MavlinkMessageWrapper rcMw = new MavlinkMessageWrapper(rcMsg);
-        rcMw.setMavLinkMessage(rcMsg);
-        ExperimentalApi.sendMavlinkMessage(getDrone(), rcMw);
+        //startActivityForResult(i, FindBluetoothDevicesActivity.REQUEST_BLE_ADDR_CODE);
+        startActivityForResult(i, SelectBluetoothDeviceActivity.REQUEST_SELECT_BT);
     }
 
 }

@@ -280,7 +280,9 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
 
         setup2GJostickButtons();
 
-        if( isJostickDisconnected() ) doJostickConnect();
+        Button btn1 = (Button) this.getActivity().findViewById(R.id.box_connect_hardware_button);
+        if( btn1 != null ) btn1.setOnClickListener(this);
+        //if( isJostickDisconnected() ) doJostickConnect();
     }
 
     @Override
@@ -331,6 +333,9 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
                 break;
             case R.id.box_4g_checkBox:
                 doTriggle4gConnect();
+                break;
+            case R.id.box_connect_hardware_button:
+                triggleJostickConnect();
                 break;
             case R.id.id_jostick_arm_btn:
             case R.id.id_jostick_takeoff_btn:
@@ -893,6 +898,7 @@ struct param_ip_data{
         }
         @Override
         public void onDisconnect(long disconnectionTime) {
+            stopConnectUartThread();
             Message message = new Message();
             Bundle bundle = new Bundle();
             message.what = JostickHandleMsgId;
@@ -947,6 +953,13 @@ struct param_ip_data{
     public boolean isJostickDisconnected()
     {
         return mUartConnect==null || mUartConnect.getConnectionStatus() == MavLinkConnection.MAVLINK_DISCONNECTED;
+    }
+    public void triggleJostickConnect()
+    {
+        if( isJostickDisconnected() )
+            doJostickConnect();
+        else
+            doJostickDisconnect();
     }
     public void doJostickConnect()
     {
@@ -1003,6 +1016,7 @@ struct param_ip_data{
     private char YAW_RIGHT_DTMF = '7';
     private char STOP_DTMF = '8';
     private char ARM_DTMF = '9';
+    private char LAND_DTMF = '9';
     private char TAKEOFF_DTMF = '*';
     private char SPEED_ADD_DTMF = 'A';
     private char SPEED_SUB_DTMF = 'B';
@@ -1050,6 +1064,9 @@ struct param_ip_data{
         switch ( viewId ){
             case R.id.id_jostick_arm_btn:
                 triggle2gArm();
+                break;
+            case R.id.id_jostick_land_btn:
+                setMega2560Send2GDTMF(LAND_DTMF);
                 break;
             case R.id.id_jostick_takeoff_btn:
                 triggle2gTakeoff();
@@ -1160,7 +1177,7 @@ struct param_ip_data{
         log2G="";
         for( int i =0 ; i< len; i++) log2G+=logs[i];
         log2G+=len;
-        log2G+='\n';
+        //log2G+='\n';
     }
     private void on2GLogChange() {
         if( log2G != null){

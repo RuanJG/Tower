@@ -209,6 +209,11 @@
                 android:layout_height="wrap_content"
                 android:id="@+id/box_buttonO2oIp"
                 android:text="Select Copter"/>
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/box_connect_hardware_button"
+                android:text="Connect Jostick"/>
 
         </LinearLayout>
 

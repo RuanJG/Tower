@@ -148,27 +148,44 @@
                     </LinearLayout>
                 </LinearLayout>
 
+
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="摇控发送方式 :"/>
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content">
-                    <RadioButton
+                    <CheckBox
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Radio"
+                        android:text="2.4G"
                         android:id="@+id/box_radioButton"
-                        android:layout_gravity="bottom"
-                        android:clickable="false" />
+                        android:layout_gravity="bottom" />
                     <Space
                         android:layout_width="10dp"
                         android:layout_height="5dp" />
                     <CheckBox
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Connect 4G"
+                        android:text="4G"
                         android:id="@+id/box_4g_checkBox"
                         android:layout_gravity="bottom"
                         android:clickable="true" />
+                    <Space
+                        android:layout_width="10dp"
+                        android:layout_height="5dp" />
+                    <CheckBox
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="2G"
+                        android:id="@+id/box_2g_checkBox"
+                        android:layout_gravity="bottom"
+                        android:clickable="true" />
                 </LinearLayout>
+
+
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -203,17 +220,17 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:id="@+id/box_videoPlayBtn"
-                android:text="Start Video"/>
+                android:text="播放"/>
             <Button
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:id="@+id/box_buttonO2oIp"
-                android:text="Select Copter"/>
+                android:text="选择飞机"/>
             <Button
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:id="@+id/box_connect_hardware_button"
-                android:text="Connect Jostick"/>
+                android:text="连接遥控"/>
 
         </LinearLayout>
 

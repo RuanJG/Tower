@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -71,20 +72,18 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
     TextView mStatusText;
     private VlcVideoFragment mVlcVideo;
     private Button playBtn ;
-    private RadioButton mRadioButton;
+    private CheckBox mRadioButton;
     private CheckBox m4gCheckBox;
+    private CheckBox m2gCheckBox;
     private TextView mDistanceText;
     private SeekBar mDistanceBar;
     private final int MAX_RADIO_DISTANCE = 2000;
     private int mDistanceFor4G=MAX_RADIO_DISTANCE;
     private int mDistanceNow = 0;
-    private boolean m4gConnectStatus = false;
-    private boolean mRadioConnectStatus = false;
     private TextView mConnectingTypeText ;
 
     //private DroidPlannerApp dpApp;
     private DroidPlannerPrefs dpPrefs;
-    Router4GFindWanIp m4GIpRouter;
 
     public static final int Rc_Settings_RESULT_CODE = 40;
     private static final int MAX_RC_COUNT =8;
@@ -94,6 +93,7 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
     public final static int BleJostickHandleMsgId =4;
     public final static int Get4GIPHandleMsgId =5;
     public final static int JostickHandleMsgId = 6;
+    public final static int SendRcThreadStatus = 7;
     private BleJostick mCopterBleJostick;
     //private BleJostick mCameraBleJostick;
 
@@ -107,6 +107,8 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
     private short GCS_ID= 0;
     private short WIFI_ID= 1;
     private short TELEM_ID= 2;
+    private short DTMF_2G_ID = 3;
+    private short NONE_ID = 7;
 
     private final int MEGA2560_SYS_ID =254;
     private final int    MEGA2560_BOARD_CMD_WIFI_CONNECT_TCP=1;
@@ -124,14 +126,24 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
 
     private  msg_rc_channels_override mRcOverridePacket;
     private String log2G;
+    private  int mKeyRcSpeed = 200;
 
-    private final int mModeForConnect = GCS_ID;//GCS_ID local send, TELEM_ID telem, WIFI_ID wifi
-    private final boolean m2gConnectStatus = false;
+    private int mModeForConnect = 1<<GCS_ID;//GCS_ID local send, TELEM_ID telem, WIFI_ID wifi
+
+    public static final int ROLLID = 0;
+    public static final int THRID = 2;
+    public static final int PITCHID=1;
+    public static final int YAWID=3;
+    public static final int CHN5ID=4;
+    public static final int CHN6ID=5;
+    public static final int CHN7ID=6;
+    public static final int CHN8ID=7;
+
 
     IRcOutputListen seekBarListen = new IRcOutputListen() {
         @Override
         public boolean doSetRcValue(int id, int value) {
-            return doSetRc(id,value);
+            return true;
         }
     };
     private static final IntentFilter eventFilter = new IntentFilter();
@@ -143,10 +155,7 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
         eventFilter.addAction(AttributeEvent.STATE_DISCONNECTED);
         eventFilter.addAction(AttributeEvent.STATE_UPDATED);
         eventFilter.addAction(AttributeEvent.STATE_VEHICLE_MODE);
-        eventFilter.addAction(AttributeEvent.FOLLOW_START);
-        eventFilter.addAction(AttributeEvent.FOLLOW_STOP);
-        eventFilter.addAction(AttributeEvent.FOLLOW_UPDATE);
-        eventFilter.addAction(AttributeEvent.MISSION_DRONIE_CREATED);
+        eventFilter.addAction(AttributeEvent.ALTITUDE_UPDATED);
         eventFilter.addAction(AttributeEvent.PARAMETERS_REFRESH_COMPLETED);
     }
     private final BroadcastReceiver eventReceiver = new BroadcastReceiver() {
@@ -171,7 +180,8 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
                 case AttributeEvent.FOLLOW_START:
                 case AttributeEvent.FOLLOW_STOP:
                 case AttributeEvent.FOLLOW_UPDATE:
-                case AttributeEvent.MISSION_DRONIE_CREATED:
+                    break;
+                case AttributeEvent.ALTITUDE_UPDATED:
                     break;
                 default:
                     break;
@@ -232,27 +242,52 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
         Button btn4 = (Button) this.getActivity().findViewById(R.id.box_buttonO2oIp);
         if( btn4 != null )
             btn4.setOnClickListener(this);
-        mRadioButton = (RadioButton) this.getActivity().findViewById(R.id.box_radioButton);
+
+
+        mModeForConnect = 1<<GCS_ID;
+        mRadioButton = (CheckBox) this.getActivity().findViewById(R.id.box_radioButton);
         if(mRadioButton!=null){
-            ;//mRadioButton.setOnClickListener(this);
-            mRadioButton.setClickable(false);
+            mRadioButton.setChecked( isThisMode(TELEM_ID) );
+            //mRadioButton.setOnClickListener(this);
+            mRadioButton.setOnCheckedChangeListener(new CheckBox.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    doTriggleRadioConnect();
+                }
+            });
+            //mRadioButton.setClickable(false);
+        }
+        m2gCheckBox = (CheckBox) this.getActivity().findViewById(R.id.box_2g_checkBox);
+        if(m2gCheckBox != null) {
+            m2gCheckBox.setChecked(isThisMode(DTMF_2G_ID));
+            //m2gCheckBox.setOnClickListener(this);
+            m2gCheckBox.setOnCheckedChangeListener(new CheckBox.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    doTriggle2gConnect();
+                }
+            });
         }
         m4gCheckBox = (CheckBox) this.getActivity().findViewById(R.id.box_4g_checkBox);
         if( m4gCheckBox != null ) {
-            m4gCheckBox.setOnClickListener(this);
-            /*
+            m4gCheckBox.setChecked(isThisMode(GCS_ID));
+            //m4gCheckBox.setOnClickListener(this);
+
             m4gCheckBox.setOnCheckedChangeListener(new CheckBox.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    //doTriggle4gConnect(isChecked);
+                    doTriggle4gConnect();
                 }
-            });*/
+            });
         }
+        onModeConnectChange();
 
 
         mDistanceBar = (SeekBar) this.getActivity().findViewById(R.id.box_distance_Bar);
         if(mDistanceBar != null) {
             mDistanceBar.setMax(MAX_RADIO_DISTANCE);
+            mDistanceNow=0;
+            mDistanceBar.setProgress(mDistanceNow);
             mDistanceBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
                 @Override
                 public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -283,6 +318,7 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
         Button btn1 = (Button) this.getActivity().findViewById(R.id.box_connect_hardware_button);
         if( btn1 != null ) btn1.setOnClickListener(this);
         //if( isJostickDisconnected() ) doJostickConnect();
+
     }
 
     @Override
@@ -293,6 +329,8 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
     public void onDetach() {
         super.onDetach();
         //mListener = null;
+        stopPlayVideo();
+        stopSendRcThread();
     }
     @Override
     public void onApiConnected() {
@@ -304,7 +342,6 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
     public void onApiDisconnected() {
         //super.onApiDisconnected();
         getBroadcastManager().unregisterReceiver(eventReceiver);
-        stopPlayVideo();
     }
 
     private void set4gDistance(int m){
@@ -334,6 +371,12 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
             case R.id.box_4g_checkBox:
                 doTriggle4gConnect();
                 break;
+            case R.id.box_2g_checkBox:
+                doTriggle2gConnect();
+                break;
+            case R.id.box_radioButton:
+                doTriggleRadioConnect();
+                break;
             case R.id.box_connect_hardware_button:
                 triggleJostickConnect();
                 break;
@@ -362,14 +405,49 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
             GAUtils.sendEvent(eventBuilder);
         }
     }
-    /*
-    int mConnectMode
-    private final int  modeLocal4G
-    private boolean isUsingLocal4GConnect()
-    {
 
-    }*/
+    private boolean isThisMode(short mode){
+        return ((mModeForConnect & (1<<mode) ) != 0 ) ;
+    }
+    private void onModeConnectChange() {
+        mega2560SwitchConnectWay(mModeForConnect);
+        if( !isThisMode(DTMF_2G_ID)) m2gCheckBox.setChecked(false);
+        if( !isThisMode(GCS_ID)) m4gCheckBox.setChecked(false);
+        if( !isThisMode(TELEM_ID)) mRadioButton.setChecked(false);
+    }
+    private void doTriggleRadioConnect() {
+        if( mRadioButton.isChecked()) {
+            mModeForConnect = 1 << TELEM_ID;
+        }else{
+            mModeForConnect &= ~(1<<TELEM_ID);
+        }
+        mega2560SwitchConnectWay(mModeForConnect);
+        onModeConnectChange();
+    }
+    private void doTriggle2gConnect() {
+        if( m2gCheckBox.isChecked()){
+            mModeForConnect = 1<<DTMF_2G_ID;
+        }else{
+            mModeForConnect &= ~(1<<DTMF_2G_ID);
+            alertUser("dis use 2g");
+        }
+        onModeConnectChange();
+    }
     private void doTriggle4gConnect()
+    {
+        if( m4gCheckBox.isChecked() ) {
+            mModeForConnect = 1<<GCS_ID;
+            starSendRcThread();
+        }else{
+            alertUser("dis use 4g");
+            stopSendRcThread();
+            mModeForConnect &= ~(1<<GCS_ID);
+        }
+        onModeConnectChange();
+    }
+
+    /* wifi call connect
+        private void doTriggle4gConnect()
     {
         if( m4gCheckBox.isChecked() ){
             mega2560WifiSetServer(dpPrefs.getTcpServerIp(),dpPrefs.getTcpServerPort());
@@ -379,39 +457,26 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
             mega2560WifiDisconnect();
         }
     }
-    private void doTriggle4gConnect(boolean callConnect)
-    {
-        if( callConnect ){
-            mega2560WifiSetServer(dpPrefs.getTcpServerIp(),dpPrefs.getTcpServerPort());
-            mega2560WifiConnect();
-        }else{
-            mega2560WifiDisconnect();
-        }/*
-        if( m4gConnectStatus ){
-            m4gCheckBox.setChecked(false);
-            mega2560WifiDisconnect();
-            m4gConnectStatus = false;
-            //m4gConnectStatus = false; //update this status by
-        }else{
-            mega2560WifiSetServer(dpPrefs.getTcpServerIp(),dpPrefs.getTcpServerPort());
-            mega2560WifiConnect();
-            m4gConnectStatus = true;
-        }*/
-    }
+     */
+
 
     private void onConnectStatusChanged()
     {
+        if( mega2560ConnectStatus != (mModeForConnect) ){
+            mega2560SwitchConnectWay(mModeForConnect);
+        }
+        /*
         if( mConnectingTypeText != null){
-            if(isWifiConnecting()) mConnectingTypeText.setText("Using 4G");
+            if(isWifiConnecting()) mConnectingTypeText.setText("Using Wifi");
             if(isTelemConnecting()) mConnectingTypeText.setText("Using Radio");
             if( mModeForConnect == GCS_ID ) mConnectingTypeText.setText("Using Local 4G");
         }
+        */
     }
     private void onActivityPathChanged()
     {
-        m4gCheckBox.setChecked(isWifiActivity());
-        mRadioButton.setChecked(isTelemActivity());
-
+        //m4gCheckBox.setChecked(isWifiActivity());
+        //mRadioButton.setChecked(isTelemActivity());
     }
 
 
@@ -454,13 +519,13 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
     private  void startPlayVideo()
     {
         mVlcVideo.startPlay(getVideoAddr());
-        debugMsg("play "+getVideoAddr());
-        playBtn.setText("Stop");
+        alertUser("play " + getVideoAddr());
+        playBtn.setText("Í£²¥");
     }
     private void stopPlayVideo()
     {
         mVlcVideo.stopPlay();
-        playBtn.setText("Start");
+        playBtn.setText("²¥·Å");
     }
 
 
@@ -470,13 +535,6 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
     public void onRcChanged(int id,int value) {
         updateRcSeekBar(id, value);
     }
-
-    //seekbar call it to set rc
-    private boolean doSetRc(int id, int value){
-        return true;
-    }
-
-
     private void doRcSeekBarTouch( int id )
     {
         Intent i;
@@ -563,6 +621,12 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
                     else
                         doSetIpToDrone(ip);
                     break;
+                case SendRcThreadStatus:
+                    if( msg.getData().getString("status").equals("false")){
+                        alertUser("stoped send rc");
+                    }else{
+                        alertUser("start sending rc");
+                    }
                 default:
                     break;
             }
@@ -592,20 +656,20 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
                         ip = data.getStringExtra("ip");
                     if( ip != null && !ip.equals(O2oActivity.UNVARLID_IP)){
                         doSetIpToDrone(ip);
-                        if( mModeForConnect == GCS_ID) {
+                        //if( mModeForConnect == GCS_ID) {
                             dpPrefs.setConnectionParameterType(ConnectionType.TYPE_TCP);
                             final int connectionType = dpPrefs.getConnectionParameterType();
                             if ((connectionType == ConnectionType.TYPE_TCP || connectionType == ConnectionType.TYPE_UDP)
                                     && dpPrefs.getTcpServerIp().equals(ip)
                                     && !getDrone().isConnected()) {
                                 ((SuperUI) getActivity()).toggleDroneConnection();
-                                DroidPlannerApp dpApp = (DroidPlannerApp) this.getActivity().getApplication();
-                                dpApp.connectToDrone();
+                                //DroidPlannerApp dpApp = (DroidPlannerApp) this.getActivity().getApplication();
+                                //dpApp.connectToDrone();
                             }
-                        }else {
+                        /*}else {
                             mega2560WifiSetServer(ip, dpPrefs.getTcpServerPort());
                             mega2560WifiConnect();
-                        }
+                        }*/
                     }
                     break;
 
@@ -637,19 +701,22 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
 
     private  void doSendRcOverrideByLocal()
     {
-        com.MAVLink.common.msg_rc_channels_override rcMsg =new com.MAVLink.common.msg_rc_channels_override() ;
-        rcMsg.chan1_raw = (short)getSeekBarByRcId(0).getProcess();
-        rcMsg.chan2_raw = (short)getSeekBarByRcId(1).getProcess();
-        rcMsg.chan3_raw = (short)getSeekBarByRcId(2).getProcess();
-        rcMsg.chan4_raw = (short)getSeekBarByRcId(3).getProcess();
-        rcMsg.chan5_raw = (short)getSeekBarByRcId(4).getProcess();
-        rcMsg.chan6_raw = (short)getSeekBarByRcId(5).getProcess();
-        rcMsg.chan7_raw = (short)getSeekBarByRcId(6).getProcess();
-        rcMsg.chan8_raw = (short)getSeekBarByRcId(7).getProcess();
+        final State droneState = getDrone().getAttribute(AttributeType.STATE);
+        if( isThisMode(GCS_ID) && getDrone().isConnected() ){//&& droneState!=null && droneState.isArmed() ) {
+            com.MAVLink.common.msg_rc_channels_override rcMsg = new com.MAVLink.common.msg_rc_channels_override();
+            rcMsg.chan1_raw = (short) getSeekBarByRcId(0).getProcess();
+            rcMsg.chan2_raw = (short) getSeekBarByRcId(1).getProcess();
+            rcMsg.chan3_raw = (short) getSeekBarByRcId(2).getProcess();
+            rcMsg.chan4_raw = (short) getSeekBarByRcId(3).getProcess();
+            rcMsg.chan5_raw = (short) getSeekBarByRcId(4).getProcess();
+            rcMsg.chan6_raw = (short) getSeekBarByRcId(5).getProcess();
+            rcMsg.chan7_raw = (short) getSeekBarByRcId(6).getProcess();
+            rcMsg.chan8_raw = (short) getSeekBarByRcId(7).getProcess();
 
-        MavlinkMessageWrapper rcMw = new MavlinkMessageWrapper(rcMsg);
-        rcMw.setMavLinkMessage(rcMsg);
-        ExperimentalApi.sendMavlinkMessage(getDrone(), rcMw);
+            MavlinkMessageWrapper rcMw = new MavlinkMessageWrapper(rcMsg);
+            rcMw.setMavLinkMessage(rcMsg);
+            ExperimentalApi.sendMavlinkMessage(getDrone(), rcMw);
+        }
     }
 
 
@@ -815,7 +882,6 @@ struct param_ip_data{
             }else{
                 ;//mRcOverridePacket = msg;//this msg is for rc
             }
-
         }
     }
 
@@ -854,13 +920,11 @@ struct param_ip_data{
                 onRcChanged(5,mRcOverridePacket.chan6_raw);
                 onRcChanged(6,mRcOverridePacket.chan7_raw);
                 onRcChanged(7, mRcOverridePacket.chan8_raw);
+            }else {
+                onActivityPathChanged();
+                onConnectStatusChanged();
+                on2GLogChange();
             }
-            onActivityPathChanged();
-            onConnectStatusChanged();
-            if( mModeForConnect == GCS_ID){
-                doSendRcOverrideByLocal();
-            }
-            on2GLogChange();
         }else if( msg.getData().getString("id").equals("onConnect") ){
             alertUser("Uart connected");
         }else if( msg.getData().getString("id").equals("onComError") ){
@@ -998,14 +1062,14 @@ struct param_ip_data{
                         (MathUtils.getDistance(droneHome.getCoordinate(), droneGps.getPosition()));
                 update = String.format("%s", distanceToHome);
                 alertUser("home distance::"+update);
-                //mDistanceNow = Integer.parseInt(update);
+                mDistanceNow = Integer.parseInt(update);
+                mDistanceBar.setProgress(mDistanceNow);
             }
         }
     }
 
 //######################################################################  2G jostick function
     private boolean callConnectStatus = false;
-    private int currentCopterSpeed = 200;
     private char ROLL_LEFT_DTMF = '0';
     private char ROLL_RIGHT_DTMF = '1';
     private char PITCH_UP_DTMF = '2';
@@ -1055,62 +1119,179 @@ struct param_ip_data{
         if(btn != null ) btn.setOnClickListener(this);
 
         btn = (Button) this.getActivity().findViewById(R.id.id_jostick_speed_text);
-        if(btn != null) btn.setText(currentCopterSpeed+"");
+        if(btn != null) btn.setText(mKeyRcSpeed+"");
 
     }
 
+    private static final String ACTION_FLIGHT_ACTION_BUTTON = "Copter flight action button";
+
+    public boolean isSafeToRcControlInLoiter() {
+        final State droneState = getDrone().getAttribute(AttributeType.STATE);
+        Gps droneGps = getDrone().getAttribute(AttributeType.GPS);
+
+        if( droneState.isArmed() && droneState.isFlying() && droneGps.isValid() && droneGps.getFixStatus().equals(Gps.LOCK_3D) )
+            return true;
+        else
+            return false;
+    }
     private void handleJostickButtons(int viewId)
     {
-        switch ( viewId ){
+        HitBuilders.EventBuilder eventBuilder = new HitBuilders.EventBuilder()
+                .setCategory(GAUtils.Category.FLIGHT);
+        final State droneState = getDrone().getAttribute(AttributeType.STATE);
+        switch ( viewId ) {
             case R.id.id_jostick_arm_btn:
-                triggle2gArm();
+                getDrone().changeVehicleMode(VehicleMode.COPTER_GUIDED);
+                if (droneState.getVehicleMode() == VehicleMode.COPTER_GUIDED) {
+                    if (droneState != null && droneState.isConnected()) {
+                        if (droneState.isArmed()) {
+                            if (!droneState.isFlying()) {
+                                getDrone().arm(false);
+                                eventBuilder.setAction(ACTION_FLIGHT_ACTION_BUTTON).setLabel("Disarm");
+                                GAUtils.sendEvent(eventBuilder);
+                            }
+                        } else {
+                            getDrone().arm(true);
+                            eventBuilder.setAction(ACTION_FLIGHT_ACTION_BUTTON).setLabel("Arm");
+                            GAUtils.sendEvent(eventBuilder);
+                        }
+                    }
+                }
                 break;
             case R.id.id_jostick_land_btn:
-                setMega2560Send2GDTMF(LAND_DTMF);
+                if( isThisMode(DTMF_2G_ID)) {
+                    setMega2560Send2GDTMF(LAND_DTMF);
+                }else {
+                    getDrone().changeVehicleMode(VehicleMode.COPTER_LAND);
+                }
                 break;
             case R.id.id_jostick_takeoff_btn:
-                triggle2gTakeoff();
+                if( isThisMode(DTMF_2G_ID) ) {
+                    triggle2gTakeoff();
+                }else{
+                    if (droneState != null && droneState.isConnected()) {
+                        /*
+                        if( droneState.getVehicleMode() != VehicleMode.COPTER_GUIDED){
+                            getDrone().changeVehicleMode(VehicleMode.COPTER_GUIDED);
+                       }
+                        if (droneState.isArmed()) {
+                            getDrone().doGuidedTakeoff(getAppPrefs().getDefaultAltitude());
+                        }else{
+                        getDrone().arm(true);
+                        eventBuilder.setAction(ACTION_FLIGHT_ACTION_BUTTON).setLabel("Arm");
+                        GAUtils.sendEvent(eventBuilder);
+                        getDrone().doGuidedTakeoff(getAppPrefs().getDefaultAltitude());
+                        }*/
+                        startGuideTakeOffTask();
+                    }
+                }
                 break;
             case R.id.id_jostick_stop_btn:
-                triggle2gHoldOn();
+                if( isThisMode(DTMF_2G_ID) ) {
+                    triggle2gHoldOn();
+                }else{
+                    //if( droneState.getVehicleMode() == VehicleMode.COPTER_STABILIZE ){
+                    //}
+                    //getDrone().changeVehicleMode(VehicleMode.COPTER_GUIDED);
+                    if( !isJostickDisconnected()){
+                        if( getSeekBarByRcId(THRID).getProcess() < 1300 ) {
+                            showUser("set thr channel up to middle");
+                            break;
+                        }
+                    }else{
+                        initRcPrepareForControl();
+                        if( isSafeToRcControlInLoiter() ) {
+                            getDrone().changeVehicleMode(VehicleMode.COPTER_LOITER);
+                            alertUser("start control by rc");
+                        }else{
+                            alertUser("no safe to change loiter!!!");
+                        }
+                    }
+                }
                 break;
             case R.id.id_jostick_call_btn:
-                triggle2gCall();
+                if( isThisMode(DTMF_2G_ID) )
+                    triggle2gCall();
                 break;
             case R.id.id_jostick_speed_sub_btn:
+                mKeyRcSpeed -= 100;
+                onKeyRcSpeedChange();
                 triggle2gSpeedSub();
                 break;
             case R.id.id_jostick_speed_add_btn:
+                mKeyRcSpeed += 100;
+                onKeyRcSpeedChange();
                 triggle2gSpeedAdd();
                 break;
             case R.id.id_jostick_thr_up_btn:
+                caliRcValueInKeyMode(THRID,true);
                 setMega2560Send2GDTMF(THR_UP_DTMF);
                 break;
             case R.id.id_jostick_thr_down_btn:
+                caliRcValueInKeyMode(THRID,false);
                 setMega2560Send2GDTMF(THR_DOWN_DTMF);
                 break;
             case R.id.id_jostick_yaw_left_btn:
+                caliRcValueInKeyMode(YAWID,false);
                 setMega2560Send2GDTMF(YAW_LEFT_DTMF);
                 break;
             case R.id.id_jostick_yaw_right_btn:
+                caliRcValueInKeyMode(YAWID,true);
                 setMega2560Send2GDTMF(YAW_RIGHT_DTMF);
                 break;
             case R.id.id_jostick_roll_left_btn:
+                caliRcValueInKeyMode(ROLLID,false);
                 setMega2560Send2GDTMF(ROLL_LEFT_DTMF);
                 break;
             case R.id.id_jostick_roll_right_btn:
+                caliRcValueInKeyMode(ROLLID,true);
                 setMega2560Send2GDTMF(ROLL_RIGHT_DTMF);
                 break;
 
             case R.id.id_jostick_pitch_up_btn:
+                caliRcValueInKeyMode(PITCHID,true);
                 setMega2560Send2GDTMF(PITCH_UP_DTMF);
                 break;
             case R.id.id_jostick_pitch_down_btn:
+                caliRcValueInKeyMode(PITCHID,false);
                 setMega2560Send2GDTMF(PITCH_DOWN_DTMF);
                 break;
         }
     }
 
+
+    private void initRcPrepareForControl() {
+        onRcChanged(THRID,1500);
+        onRcChanged(ROLLID,1500);
+        onRcChanged(PITCHID,1500);
+        onRcChanged(YAWID,1500);
+    }
+
+    private void onKeyRcSpeedChange()
+    {
+        if( mKeyRcSpeed < 0 ) mKeyRcSpeed = 0;
+        if( mKeyRcSpeed > 500) mKeyRcSpeed = 500;
+        Button btn = (Button) this.getActivity().findViewById(R.id.id_jostick_speed_text);
+        if(btn != null) btn.setText(mKeyRcSpeed+"");
+    }
+
+    private void caliRcValueInKeyMode(int id, boolean add)
+    {
+        int rc = getSeekBarByRcId(id).getProcess();
+        if( add ) {
+            if (rc < 1500) {
+                onRcChanged(id, 1500);
+            } else {
+                onRcChanged(id,1500+mKeyRcSpeed);
+            }
+        }else{
+            if (rc > 1500) {
+                onRcChanged(id, 1500);
+            } else {
+                onRcChanged(id,1500-mKeyRcSpeed);
+            }
+        }
+    }
     private void triggle2gSpeedAdd() {
         setMega2560Send2GDTMF(SPEED_ADD_DTMF);
     }
@@ -1188,4 +1369,136 @@ struct param_ip_data{
         }
         log2G = null;
     }
+
+
+    //######################################################################### send rc task
+
+    private Handler sendrcHandler;
+    private Runnable sendrcRunner;
+    private  int sendrcMs = 30;
+    private void startSendRcByGcsTask() {
+        if( sendrcHandler == null){
+            sendrcHandler= new Handler(Looper.getMainLooper());
+        }
+        if( sendrcRunner == null) {
+            sendrcRunner = new Runnable() {
+                @Override
+                public void run() {
+                    doSendRcOverrideByLocal();
+                    sendrcHandler.postDelayed(this, sendrcMs);
+                }
+            };
+            //start
+            sendrcHandler.postDelayed(sendrcRunner, 100);
+        }
+    }
+    private void stopSendRcByGcsTask(){
+        if( sendrcHandler != null && sendrcRunner != null){
+            sendrcHandler.removeCallbacks(sendrcRunner);
+            sendrcRunner = null;
+        }
+    }
+
+
+
+
+    Thread sendRcThread ;
+    boolean sendrcThreadQuit = true;
+    private void starSendRcThread() {
+        if( sendRcThread == null || !sendRcThread.isAlive()) {
+            sendRcThread = new Thread(new Runnable(){
+                @Override
+                public void run() {
+                    Message message = new Message();
+                    Bundle bundle = new Bundle();
+                    message.what = SendRcThreadStatus;
+                    bundle.putString("status", "true");
+                    message.setData(bundle);
+                    mHandler.sendMessage(message);
+                    while( !sendrcThreadQuit ){
+                        //doSendRcOverrideByLocal();
+                        try{
+                            Thread.sleep(50);
+                            doSendRcOverrideByLocal();
+                        }catch(InterruptedException e){
+                            return;
+                        }
+                    }
+                    bundle = new Bundle();
+                    message = new Message();
+                    message.what = SendRcThreadStatus;
+                    bundle.putString("status", "false");
+                    message.setData(bundle);
+                    mHandler.sendMessage(message);
+                }
+            });
+            sendrcThreadQuit = false;
+            sendRcThread.start();
+        }
+    }
+    private void stopSendRcThread()
+    {
+        sendrcThreadQuit = true;
+    }
+
+    Thread guiedTakeoffThread ;
+    Runnable takeOffRunner =new Runnable()
+    {
+        @Override
+        public void run()
+        {
+            boolean quit = false;
+            int count=0;
+            State droneState = getDrone().getAttribute(AttributeType.STATE);
+
+            Log.e("Ruan","start set guied mode");
+            if( !droneState.isConnected()) return;
+            try{
+                for( count = 0 ; count < 5; count++){
+                    droneState = getDrone().getAttribute(AttributeType.STATE);
+                    if (droneState.getVehicleMode() == VehicleMode.COPTER_GUIDED) {
+                        break;
+                    }
+                    getDrone().changeVehicleMode(VehicleMode.COPTER_GUIDED);
+                    Thread.sleep(200);
+                }
+                droneState = getDrone().getAttribute(AttributeType.STATE);
+                if (droneState.getVehicleMode() != VehicleMode.COPTER_GUIDED) {
+                    return;
+                }
+            }catch(InterruptedException e){
+                return;
+            }
+            Log.e("Ruan","set guied mode ok");
+
+            Log.e("Ruan","start set arm");
+            try{
+                for( count = 0 ; count < 5; count++){
+                    droneState = getDrone().getAttribute(AttributeType.STATE);
+                    if (droneState.isArmed()) {
+                        break;
+                    }
+                    getDrone().arm(true);
+                    Thread.sleep(200);
+                }
+                droneState = getDrone().getAttribute(AttributeType.STATE);
+                if( !droneState.isArmed() ){
+                    getDrone().arm(false);
+                    return;
+                }
+            }catch(InterruptedException e){
+                return;
+            }
+            Log.e("Ruan","start set arm ok");
+
+            getDrone().doGuidedTakeoff(getAppPrefs().getDefaultAltitude());
+        }
+    };
+    private void startGuideTakeOffTask() {
+        if( guiedTakeoffThread == null || guiedTakeoffThread.isInterrupted()) {
+            guiedTakeoffThread = new Thread(takeOffRunner);
+            guiedTakeoffThread.start();
+        }
+    }
+
 }

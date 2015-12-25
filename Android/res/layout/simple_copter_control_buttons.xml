@@ -11,22 +11,22 @@
             android:layout_height="wrap_content"
             android:id="@+id/id_jostick_arm_btn"
             android:visibility="gone"
-            android:text="Arm"/>
+            android:text="解锁"/>
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/id_jostick_takeoff_btn"
-            android:text="TakeOff"/>
+            android:text="起飞"/>
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/id_jostick_stop_btn"
-            android:text="Hold On"/>
+            android:text="手动"/>
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/id_jostick_land_btn"
-            android:text="Land"/>
+            android:text="降落"/>
         <Space
             android:layout_width="10dp"
             android:layout_height="10dp">
@@ -39,7 +39,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/id_jostick_call_btn"
-            android:text="Call"/>
+            android:text="拨号"/>
     </LinearLayout>
     <TableLayout
         android:layout_width="wrap_content"

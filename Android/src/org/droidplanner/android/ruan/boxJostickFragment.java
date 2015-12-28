@@ -702,7 +702,7 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
     private  void doSendRcOverrideByLocal()
     {
         final State droneState = getDrone().getAttribute(AttributeType.STATE);
-        if( isThisMode(GCS_ID) && getDrone().isConnected() ){//&& droneState!=null && droneState.isArmed() ) {
+        if( isThisMode(GCS_ID) && getDrone().isConnected()  && droneState!=null && droneState.isArmed() ) {
             com.MAVLink.common.msg_rc_channels_override rcMsg = new com.MAVLink.common.msg_rc_channels_override();
             rcMsg.chan1_raw = (short) getSeekBarByRcId(0).getProcess();
             rcMsg.chan2_raw = (short) getSeekBarByRcId(1).getProcess();
@@ -1495,9 +1495,11 @@ struct param_ip_data{
         }
     };
     private void startGuideTakeOffTask() {
-        if( guiedTakeoffThread == null || guiedTakeoffThread.isInterrupted()) {
+        if( guiedTakeoffThread == null || !guiedTakeoffThread.isAlive()) {
             guiedTakeoffThread = new Thread(takeOffRunner);
             guiedTakeoffThread.start();
+        }else{
+            alertUser("can not start new task "+guiedTakeoffThread.isAlive()+","+guiedTakeoffThread.isInterrupted()+","+guiedTakeoffThread.isDaemon());
         }
     }
 

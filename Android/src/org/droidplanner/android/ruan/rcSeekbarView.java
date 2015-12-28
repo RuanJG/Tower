@@ -128,11 +128,13 @@ public class rcSeekbarView extends View implements View.OnTouchListener{
         if( process < mMin) process = mMin;
         if( process > mMax) process = mMax;
         person = (double)(process-mMin)/(mMax-mMin);
+        /*
         String ps = person*100+"%";
         if(ps.length()>5){
             String tmp = ps.substring(0,4);
             ps = tmp+"%";
-        }
+        }*/
+        String ps = process+"";
         mPersonPaintWidth = mPersonPaint.measureText(ps);
         mPersonPaintHeight = mPersonPaint.getFontMetrics().bottom;
 

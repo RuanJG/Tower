@@ -38,6 +38,7 @@
                         android:layout_width="150dp"
                         android:layout_height="wrap_content">
 
+                        <Space android:layout_width="5dp" android:layout_height="8dp" />
                         <FrameLayout xmlns:app="http://schemas.android.com/apk/res/org.droidplanner.android"
                             android:layout_width="match_parent" android:layout_height="wrap_content">
                             <org.droidplanner.android.ruan.rcSeekbarView
@@ -51,6 +52,7 @@
                                 android:clickable="true"
                                 android:id="@+id/box_rcRollSeekBar"/>
                         </FrameLayout>
+                        <Space android:layout_width="5dp" android:layout_height="8dp" />
                         <FrameLayout xmlns:app="http://schemas.android.com/apk/res/org.droidplanner.android"
                             android:layout_width="match_parent" android:layout_height="wrap_content">
                             <org.droidplanner.android.ruan.rcSeekbarView
@@ -63,6 +65,7 @@
                                 app:rcColor="#33b5e5"
                                 android:clickable="true"
                                 android:id="@+id/box_rcPitchSeekBar"/></FrameLayout>
+                        <Space android:layout_width="5dp" android:layout_height="8dp" />
                         <FrameLayout xmlns:app="http://schemas.android.com/apk/res/org.droidplanner.android"
                             android:layout_width="match_parent" android:layout_height="wrap_content">
                             <org.droidplanner.android.ruan.rcSeekbarView
@@ -75,6 +78,7 @@
                                 app:rcColor="#33b5e5"
                                 android:clickable="true"
                                 android:id="@+id/box_rcThrSeekBar"/></FrameLayout>
+                        <Space android:layout_width="5dp" android:layout_height="8dp" />
                         <FrameLayout xmlns:app="http://schemas.android.com/apk/res/org.droidplanner.android"
                             android:layout_width="match_parent" android:layout_height="wrap_content">
                             <org.droidplanner.android.ruan.rcSeekbarView
@@ -96,6 +100,7 @@
                         android:orientation="vertical"
                         android:layout_width="150dp"
                         android:layout_height="wrap_content">
+                        <Space android:layout_width="5dp" android:layout_height="8dp" />
                         <FrameLayout xmlns:app="http://schemas.android.com/apk/res/org.droidplanner.android"
                             android:layout_width="match_parent" android:layout_height="wrap_content">
                             <org.droidplanner.android.ruan.rcSeekbarView
@@ -108,6 +113,7 @@
                                 app:rcString="Rc5"
                                 android:clickable="true"
                                 android:id="@+id/box_rcRc5SeekBar"/></FrameLayout>
+                        <Space android:layout_width="5dp" android:layout_height="8dp" />
                         <FrameLayout xmlns:app="http://schemas.android.com/apk/res/org.droidplanner.android"
                             android:layout_width="match_parent" android:layout_height="wrap_content">
                             <org.droidplanner.android.ruan.rcSeekbarView
@@ -121,6 +127,7 @@
                                 android:clickable="true"
                                 android:id="@+id/box_rcRc6SeekBar"
                                 android:visibility="visible" /></FrameLayout>
+                        <Space android:layout_width="5dp" android:layout_height="8dp" />
                         <FrameLayout xmlns:app="http://schemas.android.com/apk/res/org.droidplanner.android"
                             android:layout_width="match_parent" android:layout_height="wrap_content">
                             <org.droidplanner.android.ruan.rcSeekbarView
@@ -133,6 +140,7 @@
                                 app:rcString="Rc7"
                                 android:clickable="true"
                                 android:id="@+id/box_rcRc7SeekBar"/></FrameLayout>
+                        <Space android:layout_width="5dp" android:layout_height="8dp" />
                         <FrameLayout xmlns:app="http://schemas.android.com/apk/res/org.droidplanner.android"
                             android:layout_width="match_parent" android:layout_height="wrap_content">
                             <org.droidplanner.android.ruan.rcSeekbarView

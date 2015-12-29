@@ -85,7 +85,8 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
     //private DroidPlannerApp dpApp;
     private DroidPlannerPrefs dpPrefs;
 
-    public static final int Rc_Settings_RESULT_CODE = 40;
+    public static final int Rc_Settings_REQUEST_CODE = 40;
+    public static final int Rc_Settings_RESULT_CODE = 41;
     private static final int MAX_RC_COUNT =8;
 
 
@@ -520,12 +521,12 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
     {
         mVlcVideo.startPlay(getVideoAddr());
         alertUser("play " + getVideoAddr());
-        playBtn.setText("Í£²¥");
+        playBtn.setText(this.getContext().getString(R.string.vlc_video_btn_text_stop));
     }
     private void stopPlayVideo()
     {
         mVlcVideo.stopPlay();
-        playBtn.setText("²¥·Å");
+        playBtn.setText(this.getContext().getString(R.string.vlc_video_btn_text_start));
     }
 
 
@@ -541,7 +542,13 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
         i = new Intent(this.getContext(),RcSettingActivity.class);
         //i.putExtra(CameraJostickName, CameraJostickBtName);
         i.putExtra("id", id);
-        startActivityForResult(i, Rc_Settings_RESULT_CODE);
+        i.putExtra("revert",false);
+        i.putExtra("Min", 1100);
+        i.putExtra("Max", 2010);
+        i.putExtra("curveType", RcExpoView.MIDDLE_TYPE_CURVE);
+        i.putExtra("curveParamk", 10);
+
+        startActivityForResult(i, Rc_Settings_REQUEST_CODE);
     }
     private void initRcSeekBar(){
         rcSeekbarView bar;
@@ -682,6 +689,21 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
                         setMega2560CallNumber(num);
                     }
                     break;
+                }
+            }
+            case Rc_Settings_REQUEST_CODE:{
+                if( resultCode == Rc_Settings_RESULT_CODE){
+                    /*
+                    i.putExtra("id", id);
+                    i.putExtra("revert",false);
+                    i.putExtra("Min", 1100);
+                    i.putExtra("Max", 2010);
+                    i.putExtra("curveType", RcExpoView.MIDDLE_TYPE_CURVE);
+                    i.putExtra("curveParamk", 10);
+                    */
+                    alertUser("rc:"+data.getIntExtra("id",-1)+","+data.getBooleanExtra("revert",false)+","+
+                            data.getIntExtra("Min",0)+","+data.getIntExtra("Max",0)+","+
+                            data.getIntExtra("curveType",-1)+","+data.getIntExtra("curveParamk",0));
                 }
             }
             default:

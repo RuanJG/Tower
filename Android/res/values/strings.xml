@@ -580,5 +580,12 @@
     </string>
     <string name="title_activity_o2o">O2oActivity</string>
     <string name="title_activity_select_bluetooth_device">SelectBluetoothDeviceActivity</string>
+    <string name="detial_rc_setting_expo_paramk">expo=</string>
+    <string name="rc_setting_curve_type_middle">Middle Curve</string>
+    <string name="rc_setting_curve_type_thr">Thr Curve</string>
+    <string name="rc_setting_curve_type_line">no Curve</string>
+
+    <string name="vlc_video_btn_text_stop">Video Stop</string>
+    <string name="vlc_video_btn_text_start">Video Start</string>
 
 </resources>

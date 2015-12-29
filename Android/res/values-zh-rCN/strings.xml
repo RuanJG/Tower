@@ -491,4 +491,12 @@
 	    距离。</string>
     <string name="failed_start_calibration_message">无法启动校准！</string>
 
+    <string name="detial_rc_setting_expo_paramk">系数=</string>
+    <string name="rc_setting_curve_type_middle">中立点曲线</string>
+    <string name="rc_setting_curve_type_thr">油门曲线</string>
+    <string name="rc_setting_curve_type_line">直线</string>
+
+    <string name="vlc_video_btn_text_stop">停播</string>
+    <string name="vlc_video_btn_text_start">播放</string>
+
 </resources>

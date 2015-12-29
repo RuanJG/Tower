@@ -77,7 +77,7 @@ public class Expo {
 //  x 0 to 1024;
 //  k 0 to 100;
 // output between 0 and 1024
-     int expou( int x,  int k)
+    int expou( int x,  int k)
     {
         /*
         #if defined(EXTENDED_EXPO)
@@ -115,7 +115,7 @@ public class Expo {
         return value>>8;
     }
 
-    int expo(int x, int k)
+    public  int expo(int x, int k)
     {
         if (k == 0) return x;
         int y;

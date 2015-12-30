@@ -15,9 +15,20 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Channel"
+            android:textColor="@color/opaque_black"
             android:id="@+id/rcSettingText"
             android:textSize="25dp" />
 
+        <android.widget.Space
+            android:layout_width="wrap_content"
+            android:layout_height="20dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/opaque_black"
+            android:textSize="20dp"
+            android:text="一：曲线"/>
     <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:myapp="http://schemas.android.com/apk/res/org.droidplanner.android.ruan"
         android:layout_width="wrap_content" android:layout_height="wrap_content"
@@ -74,7 +85,10 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="舵量量程："/>
+                android:text="二 舵量量程："
+                android:textSize="20dp"
+                android:textColor="@color/opaque_black"
+                android:textStyle="bold" />
             <EditText
                 android:layout_width="70dp"
                 android:layout_height="wrap_content"
@@ -101,13 +115,107 @@
         <Switch
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="反转"
+                android:text="三：反转"
+                android:textColor="@color/opaque_black"
+                android:textSize="20dp"
                 android:id="@+id/id_rc_setting_revert_switch"
                 android:layout_gravity="center_horizontal|left" />
 
         <android.widget.Space
             android:layout_width="wrap_content"
+            android:layout_height="20dp" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="四 混控："
+            android:textStyle="bold"
+            android:textColor="@color/opaque_black"
+            android:textSize="20dp" />
+
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="主通道（1-8）："/>
+            <EditText
+                android:layout_width="70dp"
+                android:layout_height="wrap_content"
+                android:inputType="number"
+                android:layout_weight="1"
+                android:id="@+id/id_rc_setting_mix_main_channel"
+                android:layout_gravity="center_horizontal" />
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="主通道起点位置（默认为中点）："/>
+            <CheckBox
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="设为零点"
+                android:id="@+id/id_rc_setting_mix_start_point_type_checkbox"
+                android:checked="false"/>
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="主通道增加时的比例（+- 0~100%）："/>
+            <EditText
+                android:layout_width="70dp"
+                android:layout_height="wrap_content"
+                android:inputType="number"
+                android:layout_weight="1"
+                android:id="@+id/id_rc_setting_mix_add_person"/>
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="主通道减少时的比例（+- 0~100%）："/>
+            <EditText
+                android:layout_width="70dp"
+                android:layout_height="wrap_content"
+                android:inputType="number"
+                android:layout_weight="1"
+                android:id="@+id/id_rc_setting_mix_sub_person"/>
+        </LinearLayout>
+
+        <android.widget.Space
+            android:layout_width="wrap_content"
             android:layout_height="10dp" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="五 微调（-100~100）："
+                android:textStyle="bold"
+                android:textColor="@color/opaque_black"
+                android:textSize="20dp" />
+            <EditText
+                android:layout_width="70dp"
+                android:layout_height="wrap_content"
+                android:inputType="number"
+                android:layout_weight="1"
+                android:id="@+id/id_rc_setting_trim_value" />
+        </LinearLayout>
+
+        <android.widget.Space
+            android:layout_width="wrap_content"
+            android:layout_height="20dp" />
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

@@ -37,6 +37,7 @@ public class RcSettingActivity extends AppCompatActivity {
         mChanNum = intent.getIntExtra("id",-1);
         if( mChanNum < 0 ){
             text.setText("UnKnow Channel , Error Settings");
+            return;
         }else{
             text.setText("Channel " + (mChanNum + 1));
         }
@@ -106,10 +107,24 @@ public class RcSettingActivity extends AppCompatActivity {
         EditText rcMax = (EditText) findViewById(R.id.id_rc_setting_rc_max_value);
 
         rcMin.setText(rcData.getIntExtra("Min",0)+"");
-        rcMax.setText(rcData.getIntExtra("Max",0)+"");
+        rcMax.setText(rcData.getIntExtra("Max", 0) + "");
 
         Switch revertSw = (Switch) findViewById(R.id.id_rc_setting_revert_switch);
         revertSw.setChecked( rcData.getBooleanExtra("revert",false) );
+
+        EditText mixChanText = (EditText) findViewById(R.id.id_rc_setting_mix_main_channel);
+        EditText mixAddPersen = (EditText) findViewById(R.id.id_rc_setting_mix_add_person);
+        EditText mixSubPersen = (EditText) findViewById(R.id.id_rc_setting_mix_sub_person);
+        CheckBox mixCheckbox = (CheckBox) findViewById(R.id.id_rc_setting_mix_start_point_type_checkbox);
+        if( 0 < rcData.getIntExtra("mixChan",0)){
+            mixChanText.setText(rcData.getIntExtra("mixChan",0)+"");
+            mixAddPersen.setText(rcData.getIntExtra("mixChanAddPersen",0)+"");
+            mixSubPersen.setText(rcData.getIntExtra("mixChanSubPersen",0)+"");
+            mixCheckbox.setChecked(rcData.getIntExtra("mixChanPoint",1)==0);
+        }
+
+        EditText trimText = (EditText) findViewById(R.id.id_rc_setting_trim_value);
+        trimText.setText(rcData.getIntExtra("trim",0)+"");
     }
 
     private void doFinish()
@@ -128,6 +143,41 @@ public class RcSettingActivity extends AppCompatActivity {
 
         resultIntent.putExtra("curveType", rcExpoView.getCurveType());
         resultIntent.putExtra("curveParamk", rcExpoView.getParamK());
+
+        EditText mixChanText = (EditText) findViewById(R.id.id_rc_setting_mix_main_channel);
+        EditText mixAddPersen = (EditText) findViewById(R.id.id_rc_setting_mix_add_person);
+        EditText mixSubPersen = (EditText) findViewById(R.id.id_rc_setting_mix_sub_person);
+        CheckBox mixCheckbox = (CheckBox) findViewById(R.id.id_rc_setting_mix_start_point_type_checkbox);
+        int value;
+        value = Integer.parseInt(mixChanText.getText().toString());
+        if( value > 0 && value < 8 ) {
+            resultIntent.putExtra("mixChan", value);
+        }else {
+            resultIntent.putExtra("mixChan", 0);
+        }
+        value = Integer.parseInt(mixAddPersen.getText().toString());
+        if( value > -100 && value < 100 ) {
+            resultIntent.putExtra("mixChanAddPersen", value);
+        }else {
+            resultIntent.putExtra("mixChanAddPersen", 0);
+        }
+        value = Integer.parseInt(mixSubPersen.getText().toString());
+        if( value > -100 && value < 100 ) {
+            resultIntent.putExtra("mixChanSubPersen", value);
+        }else {
+            resultIntent.putExtra("mixChanSubPersen", 0);
+        }
+        value = mixCheckbox.isChecked()? 0:1;
+        resultIntent.putExtra("mixChanPoint", value);
+
+
+        EditText trimText = (EditText) findViewById(R.id.id_rc_setting_trim_value);
+        value = Integer.parseInt(trimText.getText().toString());
+        if( value > -100 && value < 100 ) {
+            resultIntent.putExtra("trim", value);
+        }else {
+            resultIntent.putExtra("trim", 0);
+        }
 
         setResult(boxJostickFragment.Rc_Settings_RESULT_CODE, resultIntent);
         finish();

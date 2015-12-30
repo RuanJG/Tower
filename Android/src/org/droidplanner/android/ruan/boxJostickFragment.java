@@ -547,6 +547,11 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
         i.putExtra("Max", 2010);
         i.putExtra("curveType", RcExpoView.MIDDLE_TYPE_CURVE);
         i.putExtra("curveParamk", 10);
+        i.putExtra("mixChan", PITCHID+1);// chan_id + 1 , 0 = no set
+        i.putExtra("mixChanPoint", 1);//0:low point 1:middle Point
+        i.putExtra("mixChanAddPersen", 90);//+- 100%
+        i.putExtra("mixChanSubPersen", 80);//+- 100%
+        i.putExtra("trim", 0);//0 not set , range +- 100
 
         startActivityForResult(i, Rc_Settings_REQUEST_CODE);
     }
@@ -701,9 +706,15 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
                     i.putExtra("curveType", RcExpoView.MIDDLE_TYPE_CURVE);
                     i.putExtra("curveParamk", 10);
                     */
-                    alertUser("rc:"+data.getIntExtra("id",-1)+","+data.getBooleanExtra("revert",false)+","+
-                            data.getIntExtra("Min",0)+","+data.getIntExtra("Max",0)+","+
-                            data.getIntExtra("curveType",-1)+","+data.getIntExtra("curveParamk",0));
+                    alertUser("rc:"+data.getIntExtra("id",-1)+","+data.getBooleanExtra("revert", false)+","+
+                            data.getIntExtra("Min", 0)+","+data.getIntExtra("Max",0)+","+
+                            data.getIntExtra("curveType",-1)+","+data.getIntExtra("curveParamk",0)+"mix:"+
+                            data.getIntExtra("mixChan",0)+","+
+                                    data.getIntExtra("mixChanAddPersen",0)+","+
+                                    data.getIntExtra("mixChanSubPersen",0)+","+
+                                    data.getIntExtra("mixChanPoint",1)+","+
+                                    data.getIntExtra("trim",0)+","
+                    );
                 }
             }
             default:

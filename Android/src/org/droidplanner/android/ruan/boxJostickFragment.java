@@ -64,6 +64,8 @@ import org.ruan.connection.MavLinkConnectionListener;
 import org.ruan.connection.UsbConnection;
 import org.w3c.dom.Text;
 
+import static org.droidplanner.android.ruan.RcConfigParam.*;
+
 public class boxJostickFragment  extends ApiListenerFragment  implements View.OnClickListener {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -95,6 +97,7 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
     public final static int Get4GIPHandleMsgId =5;
     public final static int JostickHandleMsgId = 6;
     public final static int SendRcThreadStatus = 7;
+    public final static int RcSettingFrameResult =8;
     private BleJostick mCopterBleJostick;
     //private BleJostick mCameraBleJostick;
 
@@ -139,6 +142,9 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
     public static final int CHN6ID=5;
     public static final int CHN7ID=6;
     public static final int CHN8ID=7;
+
+    RcSettingFragment rcSettingFragment ;
+    RcConfigParam mRcConfigParam;
 
 
     IRcOutputListen seekBarListen = new IRcOutputListen() {
@@ -320,6 +326,25 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
         if( btn1 != null ) btn1.setOnClickListener(this);
         //if( isJostickDisconnected() ) doJostickConnect();
 
+        if( rcSettingFragment == null){
+            rcSettingFragment = new RcSettingFragment();
+            this.getActivity().getSupportFragmentManager().beginTransaction().add(R.id.box_rcSettingView, rcSettingFragment).commit();
+        }
+        this.getActivity().findViewById(R.id.box_rcSettingView).setVisibility(View.INVISIBLE);
+
+        mRcConfigParam = new RcConfigParam(MAX_RC_COUNT,this.getContext());
+        RcConfigParam.baseConfig bc= new RcConfigParam.baseConfig();
+        bc.revert = false;
+        bc.minValue = 1000;
+        bc.maxValue = 2000;
+        bc.trim = 0;
+        bc.curverParamk = 0;
+        bc.curveType = RcExpoView.MIDDLE_TYPE_CURVE;
+        bc.valiable = true;
+        for( int i=0 ;i < MAX_RC_COUNT; i++){
+            bc.id = (short) i;
+            //mRcConfigParam.storeBaseConfig(bc);
+        }
     }
 
     @Override
@@ -538,22 +563,45 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
     }
     private void doRcSeekBarTouch( int id )
     {
-        Intent i;
-        i = new Intent(this.getContext(),RcSettingActivity.class);
-        //i.putExtra(CameraJostickName, CameraJostickBtName);
-        i.putExtra("id", id);
-        i.putExtra("revert",false);
-        i.putExtra("Min", 1100);
-        i.putExtra("Max", 2010);
-        i.putExtra("curveType", RcExpoView.MIDDLE_TYPE_CURVE);
-        i.putExtra("curveParamk", 10);
-        i.putExtra("mixChan", PITCHID+1);// chan_id + 1 , 0 = no set
-        i.putExtra("mixChanPoint", 1);//0:low point 1:middle Point
-        i.putExtra("mixChanAddPersen", 90);//+- 100%
-        i.putExtra("mixChanSubPersen", 80);//+- 100%
-        i.putExtra("trim", 0);//0 not set , range +- 100
 
-        startActivityForResult(i, Rc_Settings_REQUEST_CODE);
+        Intent i=new Intent();
+        RcConfigParam.mixConfig mc = mRcConfigParam.getMixConfigBySlavchan(id);
+        RcConfigParam.baseConfig bc = mRcConfigParam.getBaseConfig(id);
+        //i = new Intent(this.getContext(),RcSettingActivity.class);
+        //i.putExtra(CameraJostickName, CameraJostickBtName);
+       // if( bc == null || !bc.valiable){
+        //    showUser("No rc Config for this channel");
+        //    return;
+       // }else{
+            /*
+            i.putExtra("id", id);
+            i.putExtra("revert",bc.revert);
+            i.putExtra("Min", bc.minValue);
+            i.putExtra("Max", bc.maxValue);
+            i.putExtra("curveType", bc.curveType);
+            i.putExtra("curveParamk", bc.curverParamk);
+            i.putExtra("trim", bc.trim);//0 not set , range +- 100
+            if( mc != null && mc.valiable) {
+                i.putExtra("mixChan", mc.mainChan);// chan_id + 1 , 0 = no set
+                i.putExtra("mixChanPoint", mc.mainChanStartPoint);//0:low point 1:middle Point
+                i.putExtra("mixChanAddPersen", mc.persenAtAdd);//+- 100%
+                i.putExtra("mixChanSubPersen", mc.persenAtSub);//+- 100%
+            }else{
+                i.putExtra("mixChan", -1);// chan_id + 1 , 0 = no set
+            }
+            */
+          //  rcSettingFragment.doInit(mHandler, bc,mc);
+         //   this.getActivity().findViewById(R.id.box_rcSettingView).setVisibility(View.VISIBLE);
+          //  this.getActivity().findViewById(R.id.box_jostick_board).setVisibility(View.INVISIBLE);
+            //startActivityForResult(i, Rc_Settings_REQUEST_CODE);
+       // }
+        if( bc == null || !bc.valiable){
+                bc = new RcConfigParam.baseConfig(id);//get a default setting
+        }
+        rcSettingFragment.doInit(mHandler, bc,mc);
+        this.getActivity().findViewById(R.id.box_rcSettingView).setVisibility(View.VISIBLE);
+        this.getActivity().findViewById(R.id.box_jostick_board).setVisibility(View.INVISIBLE);
+
     }
     private void initRcSeekBar(){
         rcSeekbarView bar;
@@ -615,7 +663,7 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
         }
     }
 
-    private Handler mHandler = new Handler(){
+    protected Handler mHandler = new Handler(){
         public void handleMessage(Message msg) {
             /*
             if( mRcOutput == null) {
@@ -636,18 +684,93 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
                 case SendRcThreadStatus:
                     if( msg.getData().getString("status").equals("false")){
                         alertUser("stoped send rc");
-                    }else{
+                    }else {
                         alertUser("start sending rc");
                     }
+                    break;
+                case RcSettingFrameResult:
+                    alertUser("rc:"+msg.getData().getInt("id", -1)+","+msg.getData().getInt("revert", 0)+","+
+                                    msg.getData().getInt("Min", 0)+","+msg.getData().getInt("Max", 0)+","+
+                                    msg.getData().getInt("curveType", -1)+","+msg.getData().getInt("curveParamk",0)+"mix:"+
+                                    msg.getData().getInt("mixChan", -1)+","+
+                                    msg.getData().getInt("mixChanAddPersen", 0)+","+
+                                    msg.getData().getInt("mixChanSubPersen", 0)+","+
+                                    msg.getData().getInt("mixChanPoint", 1)+","+
+                                    msg.getData().getInt("trim",0)+","
+                    );
+                    RcConfigParam.baseConfig bc = new RcConfigParam.baseConfig();
+                    bc.id = (short) msg.getData().getInt("id", -1);
+                    bc.revert = msg.getData().getInt("revert", 0)==1;
+                    bc.minValue = (short) msg.getData().getInt("Min", 0);
+                    bc.maxValue = (short) msg.getData().getInt("Max",0);
+                    bc.trim = (short) msg.getData().getInt("trim",0);
+                    bc.curverParamk = (short) msg.getData().getInt("curveParamk",0);
+                    bc.curveType = (short) msg.getData().getInt("curveType", -1);
+                    bc.valiable = true;
+                    mRcConfigParam.storeBaseConfig(bc);
+                    doSyncRcBaseConfigWithJostick(bc);
+
+                    RcConfigParam.mixConfig mc = new RcConfigParam.mixConfig();
+                    mc.slaveChan = msg.getData().getInt("id", -1);
+                    mc.mainChan = msg.getData().getInt("mixChan", -1);
+                    mc.persenAtAdd = msg.getData().getInt("mixChanAddPersen", 0);
+                    mc.persenAtSub = msg.getData().getInt("mixChanSubPersen", 0);
+                    mc.mainChanStartPoint = msg.getData().getInt("mixChanPoint", 1);
+                    mc.valiable = true;
+                    mRcConfigParam.storeMixConfig(mc);
+                    doSyncRcMixConfigWithJostick(mc);
+
+                    break;
                 default:
                     break;
             }
             //super.handleMessage(msg);
         }
     };
+    private void doSyncRcMixConfigWithJostick(RcConfigParam.mixConfig mc)
+    {
 
+    }
 
+    private void doSyncRcBaseConfigWithJostick(RcConfigParam.baseConfig bc)
+    {
+        int MAVLINK_MSG_ID_RC_CHANNELS = 65;
+        int MAVLINK_MSG_LENGTH = 42;
+        long serialVersionUID = MAVLINK_MSG_ID_RC_CHANNELS;
+        com.MAVLinks.MAVLinkPacket packet = new com.MAVLinks.MAVLinkPacket();
+        packet.len = MAVLINK_MSG_LENGTH;
+        packet.sysid = 255;
+        packet.compid = 190;
+        packet.msgid = MAVLINK_MSG_ID_RC_CHANNELS;
 
+        if(!bc.isValiable()){
+            alertUser("bad baseConfig for sending");
+            return ;
+        }
+        packet.payload.putUnsignedInt(bc.id);
+        packet.payload.putShort(bc.curverParamk);
+        packet.payload.putShort(bc.curveType);
+        packet.payload.putShort(bc.maxValue);
+        packet.payload.putShort(bc.minValue);
+        packet.payload.putShort(bc.trim);
+        packet.payload.putShort((short) (bc.revert?1:0));
+        packet.payload.putUnsignedShort(0);
+        packet.payload.putUnsignedShort(0);
+        packet.payload.putUnsignedShort(0);
+        packet.payload.putUnsignedShort(0);
+        packet.payload.putUnsignedShort(0);
+        packet.payload.putUnsignedShort(0);
+        packet.payload.putUnsignedShort(0);
+        packet.payload.putUnsignedShort(0);
+        packet.payload.putUnsignedShort(0);
+        packet.payload.putUnsignedShort(0);
+        packet.payload.putUnsignedShort(0);
+        packet.payload.putUnsignedShort(0);
+        packet.payload.putUnsignedByte((short) 0);
+        packet.payload.putUnsignedByte((short) 0);
+
+        doJostickSendMavlink(packet);
+    }
     //set4G ip
     private void doSetIpToDrone(String ip)
     {
@@ -696,6 +819,7 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
                     break;
                 }
             }
+
             case Rc_Settings_REQUEST_CODE:{
                 if( resultCode == Rc_Settings_RESULT_CODE){
                     /*
@@ -717,6 +841,7 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
                     );
                 }
             }
+
             default:
                 super.onActivityResult(requestCode, resultCode, data);
                 break;

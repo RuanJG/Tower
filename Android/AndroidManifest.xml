@@ -138,8 +138,6 @@
             android:label="@string/title_activity_o2o"
             android:theme="@style/CustomActionBarTheme" >
         </activity>
-        <activity android:name=".ruan.RcSettingActivity" >
-        </activity>
         <activity
             android:name=".ruan.SelectBluetoothDeviceActivity"
             android:label="@string/title_activity_select_bluetooth_device"

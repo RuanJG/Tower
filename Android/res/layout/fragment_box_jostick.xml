@@ -4,267 +4,270 @@
     tools:context="org.droidplanner.android.ruan.boxJostickFragment"
     android:background="#ccc">
 
-
-    <LinearLayout
+    <ScrollView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:id="@+id/box_jostick_board"
-        >
+        android:id="@+id/box_jostick_board">
         <LinearLayout
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content">
-            <FrameLayout
-                android:layout_width="320dp"
-                android:layout_height="240dp"
-                android:id="@+id/box_vlcVideoView"
-            />
-            <Space
-                android:layout_width="5dp"
-                android:layout_height="5dp" />
-
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
             <LinearLayout
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
-
-                <LinearLayout
-                    android:orientation="horizontal"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:baselineAligned="false">
-
-                    <LinearLayout
-                        android:orientation="vertical"
-                        android:layout_width="150dp"
-                        android:layout_height="wrap_content">
-
-                        <Space android:layout_width="5dp" android:layout_height="8dp" />
-                        <FrameLayout xmlns:app="http://schemas.android.com/apk/res/org.droidplanner.android"
-                            android:layout_width="match_parent" android:layout_height="wrap_content">
-                            <org.droidplanner.android.ruan.rcSeekbarView
-                                app:Id="0"
-                                app:rcString="Roll"
-                                android:background="#ccc"
-                                android:layout_marginBottom="@dimen/rc_seekbar_margin"
-                                android:layout_width="match_parent" android:layout_height="25dp"
-                                app:rcTextDimension="14sp"
-                                app:rcColor="#33b5e5"
-                                android:clickable="true"
-                                android:id="@+id/box_rcRollSeekBar"/>
-                        </FrameLayout>
-                        <Space android:layout_width="5dp" android:layout_height="8dp" />
-                        <FrameLayout xmlns:app="http://schemas.android.com/apk/res/org.droidplanner.android"
-                            android:layout_width="match_parent" android:layout_height="wrap_content">
-                            <org.droidplanner.android.ruan.rcSeekbarView
-                                app:Id="1"
-                                app:rcString="Pitch"
-                                android:background="#ccc"
-                                android:layout_marginBottom="@dimen/rc_seekbar_margin"
-                                android:layout_width="match_parent" android:layout_height="25dp"
-                                app:rcTextDimension="14sp"
-                                app:rcColor="#33b5e5"
-                                android:clickable="true"
-                                android:id="@+id/box_rcPitchSeekBar"/></FrameLayout>
-                        <Space android:layout_width="5dp" android:layout_height="8dp" />
-                        <FrameLayout xmlns:app="http://schemas.android.com/apk/res/org.droidplanner.android"
-                            android:layout_width="match_parent" android:layout_height="wrap_content">
-                            <org.droidplanner.android.ruan.rcSeekbarView
-                                app:Id="2"
-                                app:rcString="Thr"
-                                android:background="#ccc"
-                                android:layout_marginBottom="@dimen/rc_seekbar_margin"
-                                android:layout_width="match_parent" android:layout_height="25dp"
-                                app:rcTextDimension="14sp"
-                                app:rcColor="#33b5e5"
-                                android:clickable="true"
-                                android:id="@+id/box_rcThrSeekBar"/></FrameLayout>
-                        <Space android:layout_width="5dp" android:layout_height="8dp" />
-                        <FrameLayout xmlns:app="http://schemas.android.com/apk/res/org.droidplanner.android"
-                            android:layout_width="match_parent" android:layout_height="wrap_content">
-                            <org.droidplanner.android.ruan.rcSeekbarView
-                                app:Id="3"
-                                android:background="#ccc"
-                                android:layout_marginBottom="@dimen/rc_seekbar_margin"
-                                android:layout_width="match_parent" android:layout_height="25dp"
-                                app:rcTextDimension="14sp"
-                                app:rcColor="#33b5e5"
-                                app:rcString="Yaw"
-                                android:clickable="true"
-                                android:id="@+id/box_rcYawSeekBar"/></FrameLayout>
-                    </LinearLayout>
-                    <Space
-                        android:layout_width="5dp"
-                        android:layout_height="wrap_content" />
-                    <LinearLayout
-                        xmlns:app="http://schemas.android.com/apk/res/org.droidplanner.android"
-                        android:orientation="vertical"
-                        android:layout_width="150dp"
-                        android:layout_height="wrap_content">
-                        <Space android:layout_width="5dp" android:layout_height="8dp" />
-                        <FrameLayout xmlns:app="http://schemas.android.com/apk/res/org.droidplanner.android"
-                            android:layout_width="match_parent" android:layout_height="wrap_content">
-                            <org.droidplanner.android.ruan.rcSeekbarView
-                                app:Id="4"
-                                android:background="#ccc"
-                                android:layout_width="match_parent" android:layout_height="25dp"
-                                android:layout_marginBottom="@dimen/rc_seekbar_margin"
-                                app:rcTextDimension="14sp"
-                                app:rcColor="#33b5e5"
-                                app:rcString="Rc5"
-                                android:clickable="true"
-                                android:id="@+id/box_rcRc5SeekBar"/></FrameLayout>
-                        <Space android:layout_width="5dp" android:layout_height="8dp" />
-                        <FrameLayout xmlns:app="http://schemas.android.com/apk/res/org.droidplanner.android"
-                            android:layout_width="match_parent" android:layout_height="wrap_content">
-                            <org.droidplanner.android.ruan.rcSeekbarView
-                                app:Id="5"
-                                android:background="#ccc"
-                                android:layout_marginBottom="@dimen/rc_seekbar_margin"
-                                android:layout_width="match_parent" android:layout_height="25dp"
-                                app:rcTextDimension="14sp"
-                                app:rcColor="#33b5e5"
-                                app:rcString="Rc6"
-                                android:clickable="true"
-                                android:id="@+id/box_rcRc6SeekBar"
-                                android:visibility="visible" /></FrameLayout>
-                        <Space android:layout_width="5dp" android:layout_height="8dp" />
-                        <FrameLayout xmlns:app="http://schemas.android.com/apk/res/org.droidplanner.android"
-                            android:layout_width="match_parent" android:layout_height="wrap_content">
-                            <org.droidplanner.android.ruan.rcSeekbarView
-                                app:Id="6"
-                                android:background="#ccc"
-                                android:layout_marginBottom="@dimen/rc_seekbar_margin"
-                                android:layout_width="match_parent" android:layout_height="25dp"
-                                app:rcTextDimension="14sp"
-                                app:rcColor="#33b5e5"
-                                app:rcString="Rc7"
-                                android:clickable="true"
-                                android:id="@+id/box_rcRc7SeekBar"/></FrameLayout>
-                        <Space android:layout_width="5dp" android:layout_height="8dp" />
-                        <FrameLayout xmlns:app="http://schemas.android.com/apk/res/org.droidplanner.android"
-                            android:layout_width="match_parent" android:layout_height="wrap_content">
-                            <org.droidplanner.android.ruan.rcSeekbarView
-                                app:Id="7"
-                                android:background="#ccc"
-                                android:layout_marginBottom="@dimen/rc_seekbar_margin"
-                                android:layout_width="match_parent" android:layout_height="25dp"
-                                app:rcTextDimension="14sp"
-                                app:rcColor="#33b5e5"
-                                app:rcString="Rc8"
-                                android:clickable="true"
-                                android:id="@+id/box_rcRc8SeekBar"/></FrameLayout>
-                    </LinearLayout>
-                </LinearLayout>
-
-
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="摇控发送方式 :"/>
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content">
-                    <CheckBox
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="2.4G"
-                        android:id="@+id/box_radioButton"
-                        android:layout_gravity="bottom" />
-                    <Space
-                        android:layout_width="10dp"
-                        android:layout_height="5dp" />
-                    <CheckBox
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="4G"
-                        android:id="@+id/box_4g_checkBox"
-                        android:layout_gravity="bottom"
-                        android:clickable="true" />
-                    <Space
-                        android:layout_width="10dp"
-                        android:layout_height="5dp" />
-                    <CheckBox
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="2G"
-                        android:id="@+id/box_2g_checkBox"
-                        android:layout_gravity="bottom"
-                        android:clickable="true" />
-                </LinearLayout>
-
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/box_connecting_type_text"
-                    android:text="Using Radio"/>
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/box_distan_text"
-                    android:text="auto switch 4G when farter (100)m"/>
+                android:layout_height="wrap_content">
+                <FrameLayout
+                    android:layout_width="320dp"
+                    android:layout_height="240dp"
+                    android:id="@+id/box_vlcVideoView"
+                    />
                 <Space
                     android:layout_width="5dp"
                     android:layout_height="5dp" />
-                <SeekBar
-                    android:layout_width="250dp"
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:id="@+id/box_distance_Bar"
-                    android:layout_gravity="bottom" />
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:orientation="horizontal"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:baselineAligned="false">
+
+                        <LinearLayout
+                            android:orientation="vertical"
+                            android:layout_width="150dp"
+                            android:layout_height="wrap_content">
+
+                            <Space android:layout_width="5dp" android:layout_height="8dp" />
+                            <FrameLayout xmlns:app="http://schemas.android.com/apk/res/org.droidplanner.android"
+                                android:layout_width="match_parent" android:layout_height="wrap_content">
+                                <org.droidplanner.android.ruan.rcSeekbarView
+                                    app:Id="0"
+                                    app:rcString="Roll"
+                                    android:background="#ccc"
+                                    android:layout_marginBottom="@dimen/rc_seekbar_margin"
+                                    android:layout_width="match_parent" android:layout_height="25dp"
+                                    app:rcTextDimension="14sp"
+                                    app:rcColor="#33b5e5"
+                                    android:clickable="true"
+                                    android:id="@+id/box_rcRollSeekBar"/>
+                            </FrameLayout>
+                            <Space android:layout_width="5dp" android:layout_height="8dp" />
+                            <FrameLayout xmlns:app="http://schemas.android.com/apk/res/org.droidplanner.android"
+                                android:layout_width="match_parent" android:layout_height="wrap_content">
+                                <org.droidplanner.android.ruan.rcSeekbarView
+                                    app:Id="1"
+                                    app:rcString="Pitch"
+                                    android:background="#ccc"
+                                    android:layout_marginBottom="@dimen/rc_seekbar_margin"
+                                    android:layout_width="match_parent" android:layout_height="25dp"
+                                    app:rcTextDimension="14sp"
+                                    app:rcColor="#33b5e5"
+                                    android:clickable="true"
+                                    android:id="@+id/box_rcPitchSeekBar"/></FrameLayout>
+                            <Space android:layout_width="5dp" android:layout_height="8dp" />
+                            <FrameLayout xmlns:app="http://schemas.android.com/apk/res/org.droidplanner.android"
+                                android:layout_width="match_parent" android:layout_height="wrap_content">
+                                <org.droidplanner.android.ruan.rcSeekbarView
+                                    app:Id="2"
+                                    app:rcString="Thr"
+                                    android:background="#ccc"
+                                    android:layout_marginBottom="@dimen/rc_seekbar_margin"
+                                    android:layout_width="match_parent" android:layout_height="25dp"
+                                    app:rcTextDimension="14sp"
+                                    app:rcColor="#33b5e5"
+                                    android:clickable="true"
+                                    android:id="@+id/box_rcThrSeekBar"/></FrameLayout>
+                            <Space android:layout_width="5dp" android:layout_height="8dp" />
+                            <FrameLayout xmlns:app="http://schemas.android.com/apk/res/org.droidplanner.android"
+                                android:layout_width="match_parent" android:layout_height="wrap_content">
+                                <org.droidplanner.android.ruan.rcSeekbarView
+                                    app:Id="3"
+                                    android:background="#ccc"
+                                    android:layout_marginBottom="@dimen/rc_seekbar_margin"
+                                    android:layout_width="match_parent" android:layout_height="25dp"
+                                    app:rcTextDimension="14sp"
+                                    app:rcColor="#33b5e5"
+                                    app:rcString="Yaw"
+                                    android:clickable="true"
+                                    android:id="@+id/box_rcYawSeekBar"/></FrameLayout>
+                        </LinearLayout>
+                        <Space
+                            android:layout_width="5dp"
+                            android:layout_height="wrap_content" />
+                        <LinearLayout
+                            xmlns:app="http://schemas.android.com/apk/res/org.droidplanner.android"
+                            android:orientation="vertical"
+                            android:layout_width="150dp"
+                            android:layout_height="wrap_content">
+                            <Space android:layout_width="5dp" android:layout_height="8dp" />
+                            <FrameLayout xmlns:app="http://schemas.android.com/apk/res/org.droidplanner.android"
+                                android:layout_width="match_parent" android:layout_height="wrap_content">
+                                <org.droidplanner.android.ruan.rcSeekbarView
+                                    app:Id="4"
+                                    android:background="#ccc"
+                                    android:layout_width="match_parent" android:layout_height="25dp"
+                                    android:layout_marginBottom="@dimen/rc_seekbar_margin"
+                                    app:rcTextDimension="14sp"
+                                    app:rcColor="#33b5e5"
+                                    app:rcString="Rc5"
+                                    android:clickable="true"
+                                    android:id="@+id/box_rcRc5SeekBar"/></FrameLayout>
+                            <Space android:layout_width="5dp" android:layout_height="8dp" />
+                            <FrameLayout xmlns:app="http://schemas.android.com/apk/res/org.droidplanner.android"
+                                android:layout_width="match_parent" android:layout_height="wrap_content">
+                                <org.droidplanner.android.ruan.rcSeekbarView
+                                    app:Id="5"
+                                    android:background="#ccc"
+                                    android:layout_marginBottom="@dimen/rc_seekbar_margin"
+                                    android:layout_width="match_parent" android:layout_height="25dp"
+                                    app:rcTextDimension="14sp"
+                                    app:rcColor="#33b5e5"
+                                    app:rcString="Rc6"
+                                    android:clickable="true"
+                                    android:id="@+id/box_rcRc6SeekBar"
+                                    android:visibility="visible" /></FrameLayout>
+                            <Space android:layout_width="5dp" android:layout_height="8dp" />
+                            <FrameLayout xmlns:app="http://schemas.android.com/apk/res/org.droidplanner.android"
+                                android:layout_width="match_parent" android:layout_height="wrap_content">
+                                <org.droidplanner.android.ruan.rcSeekbarView
+                                    app:Id="6"
+                                    android:background="#ccc"
+                                    android:layout_marginBottom="@dimen/rc_seekbar_margin"
+                                    android:layout_width="match_parent" android:layout_height="25dp"
+                                    app:rcTextDimension="14sp"
+                                    app:rcColor="#33b5e5"
+                                    app:rcString="Rc7"
+                                    android:clickable="true"
+                                    android:id="@+id/box_rcRc7SeekBar"/></FrameLayout>
+                            <Space android:layout_width="5dp" android:layout_height="8dp" />
+                            <FrameLayout xmlns:app="http://schemas.android.com/apk/res/org.droidplanner.android"
+                                android:layout_width="match_parent" android:layout_height="wrap_content">
+                                <org.droidplanner.android.ruan.rcSeekbarView
+                                    app:Id="7"
+                                    android:background="#ccc"
+                                    android:layout_marginBottom="@dimen/rc_seekbar_margin"
+                                    android:layout_width="match_parent" android:layout_height="25dp"
+                                    app:rcTextDimension="14sp"
+                                    app:rcColor="#33b5e5"
+                                    app:rcString="Rc8"
+                                    android:clickable="true"
+                                    android:id="@+id/box_rcRc8SeekBar"/></FrameLayout>
+                        </LinearLayout>
+                    </LinearLayout>
+
+
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="摇控发送方式 :"/>
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content">
+                        <CheckBox
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="2.4G"
+                            android:id="@+id/box_radioButton"
+                            android:layout_gravity="bottom" />
+                        <Space
+                            android:layout_width="10dp"
+                            android:layout_height="5dp" />
+                        <CheckBox
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="4G"
+                            android:id="@+id/box_4g_checkBox"
+                            android:layout_gravity="bottom"
+                            android:clickable="true" />
+                        <Space
+                            android:layout_width="10dp"
+                            android:layout_height="5dp" />
+                        <CheckBox
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="2G"
+                            android:id="@+id/box_2g_checkBox"
+                            android:layout_gravity="bottom"
+                            android:clickable="true" />
+                    </LinearLayout>
+
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/box_connecting_type_text"
+                        android:text="Using Radio"/>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/box_distan_text"
+                        android:text="auto switch 4G when farter (100)m"/>
+                    <Space
+                        android:layout_width="5dp"
+                        android:layout_height="5dp" />
+                    <SeekBar
+                        android:layout_width="250dp"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/box_distance_Bar"
+                        android:layout_gravity="bottom" />
+
+                </LinearLayout>
+
+
 
             </LinearLayout>
 
 
+            <!-- ################################### button -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+                <Button
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/box_videoPlayBtn"
+                    android:text="播放"/>
+                <Button
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/box_buttonO2oIp"
+                    android:text="选择飞机"/>
+                <Button
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/box_connect_hardware_button"
+                    android:text="连接遥控"/>
+
+            </LinearLayout>
+
+
+            <Space
+                android:layout_width="match_parent"
+                android:layout_height="20dp" />
+            <include
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                layout="@layout/simple_copter_control_buttons"
+                />
+            <!--android:layout_gravity="center_vertical|end" -->
+
+            <Space
+                android:layout_width="match_parent"
+                android:layout_height="10dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/box_statusText"
+                android:text="ready..."/>
 
         </LinearLayout>
+    </ScrollView>
 
-
-        <!-- ################################### button -->
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content">
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/box_videoPlayBtn"
-                android:text="播放"/>
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/box_buttonO2oIp"
-                android:text="选择飞机"/>
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/box_connect_hardware_button"
-                android:text="连接遥控"/>
-
-        </LinearLayout>
-
-
-        <Space
-            android:layout_width="match_parent"
-            android:layout_height="20dp" />
-        <include
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            layout="@layout/simple_copter_control_buttons"
-            />
-        <!--android:layout_gravity="center_vertical|end" -->
-
-        <Space
-            android:layout_width="match_parent"
-            android:layout_height="10dp" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/box_statusText"
-            android:text="ready..."/>
-
-    </LinearLayout>
 
 
         <FrameLayout

@@ -3,241 +3,246 @@
     android:layout_height="match_parent"
     tools:context="org.droidplanner.android.ruan.RcSettingFragment">
 
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" android:paddingLeft="@dimen/activity_horizontal_margin"
-        android:paddingRight="@dimen/activity_horizontal_margin"
-        android:paddingTop="@dimen/activity_vertical_margin"
-        android:paddingBottom="@dimen/activity_vertical_margin">
+    <ScrollView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" android:paddingLeft="@dimen/activity_horizontal_margin"
+            android:paddingRight="@dimen/activity_horizontal_margin"
+            android:paddingTop="@dimen/activity_vertical_margin"
+            android:paddingBottom="@dimen/activity_vertical_margin">
 
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Channel"
-                android:textColor="@color/opaque_black"
-                android:id="@+id/rcSettingText"
-                android:textSize="25dp" />
-
-            <android.widget.Space
-                android:layout_width="wrap_content"
-                android:layout_height="20dp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textColor="@color/opaque_black"
-                android:textSize="20dp"
-                android:text="一：曲线"/>
-            <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                xmlns:myapp="http://schemas.android.com/apk/res/org.droidplanner.android.ruan"
-                android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:layout_alignParentTop="false"
-                android:layout_alignParentLeft="false"
-                android:layout_below="@+id/rcSettingText"
-                android:layout_marginTop="20dp"
-                android:layout_gravity="left">
-
-                <org.droidplanner.android.ruan.RcExpoView android:background="#ccc" android:layout_width="300dp"
-                    android:layout_height="300dp"
-                    android:paddingLeft="20dp"
-                    android:paddingTop="20dp"
-                    android:paddingRight="20dp"
-                    android:paddingBottom="20dp"
-                    android:id="@+id/id_rc_setting_expo_view"/>
-            </FrameLayout>
-            <CheckBox
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="油门曲线"
-                android:id="@+id/id_rc_setting_curve_type_checkbox"
-                android:checked="false"/>
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="left">
+                android:orientation="vertical">
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="曲线系数："/>
-                <Button
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="+"
-                    android:id="@+id/id_rc_setting_k_add_btn"/>
-                <Button
-                    android:layout_width="60dp"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/id_rc_setting_k_value_text"
-                    android:text="50"
-                    android:clickable="false"
-                    android:textSize="20dp" />
-                <Button
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="-"
-                    android:id="@+id/id_rc_setting_k_sub_btn"/>
-            </LinearLayout>
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="left">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="二 舵量量程："
-                    android:textSize="20dp"
+                    android:text="Channel"
                     android:textColor="@color/opaque_black"
-                    android:textStyle="bold" />
-                <EditText
-                    android:layout_width="70dp"
-                    android:layout_height="wrap_content"
-                    android:inputType="number"
-                    android:layout_weight="1"
-                    android:id="@+id/id_rc_setting_rc_min_value" />
+                    android:id="@+id/rcSettingText"
+                    android:textSize="25dp" />
+
+                <android.widget.Space
+                    android:layout_width="wrap_content"
+                    android:layout_height="20dp" />
+
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text=" 到 "/>
-                <EditText
-                    android:layout_width="70dp"
-                    android:layout_height="wrap_content"
-                    android:inputType="number"
-                    android:layout_weight="1"
-                    android:id="@+id/id_rc_setting_rc_max_value" />
+                    android:textColor="@color/opaque_black"
+                    android:textSize="20dp"
+                    android:text="一：曲线"/>
+                <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                    xmlns:myapp="http://schemas.android.com/apk/res/org.droidplanner.android.ruan"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:layout_alignParentTop="false"
+                    android:layout_alignParentLeft="false"
+                    android:layout_below="@+id/rcSettingText"
+                    android:layout_marginTop="20dp"
+                    android:layout_gravity="left">
 
-            </LinearLayout>
-
-
-            <android.widget.Space
-                android:layout_width="wrap_content"
-                android:layout_height="10dp" />
-            <Switch
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="三：反转"
-                android:textColor="@color/opaque_black"
-                android:textSize="20dp"
-                android:id="@+id/id_rc_setting_revert_switch"
-                android:layout_gravity="center_horizontal|left" />
-
-            <android.widget.Space
-                android:layout_width="wrap_content"
-                android:layout_height="20dp" />
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="四 混控："
-                android:textStyle="bold"
-                android:textColor="@color/opaque_black"
-                android:textSize="20dp" />
-
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="主通道（1-8）："/>
-                <EditText
-                    android:layout_width="70dp"
-                    android:layout_height="wrap_content"
-                    android:inputType="number"
-                    android:layout_weight="1"
-                    android:id="@+id/id_rc_setting_mix_main_channel"
-                    android:layout_gravity="center_horizontal" />
-            </LinearLayout>
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="主通道起点位置（默认为中点）："/>
+                    <org.droidplanner.android.ruan.RcExpoView android:background="#ccc" android:layout_width="300dp"
+                        android:layout_height="300dp"
+                        android:paddingLeft="20dp"
+                        android:paddingTop="20dp"
+                        android:paddingRight="20dp"
+                        android:paddingBottom="20dp"
+                        android:id="@+id/id_rc_setting_expo_view"/>
+                </FrameLayout>
                 <CheckBox
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="设为零点"
-                    android:id="@+id/id_rc_setting_mix_start_point_type_checkbox"
+                    android:text="油门曲线"
+                    android:id="@+id/id_rc_setting_curve_type_checkbox"
                     android:checked="false"/>
-            </LinearLayout>
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content">
-                <TextView
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="主通道增加时的比例（+- 0~100%）："/>
-                <EditText
-                    android:layout_width="70dp"
-                    android:layout_height="wrap_content"
-                    android:inputType="number"
-                    android:layout_weight="1"
-                    android:id="@+id/id_rc_setting_mix_add_person"/>
-            </LinearLayout>
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content">
-                <TextView
+                    android:layout_gravity="left">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="曲线系数："/>
+                    <Button
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="+"
+                        android:id="@+id/id_rc_setting_k_add_btn"/>
+                    <Button
+                        android:layout_width="60dp"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/id_rc_setting_k_value_text"
+                        android:text="50"
+                        android:clickable="false"
+                        android:textSize="20dp" />
+                    <Button
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="-"
+                        android:id="@+id/id_rc_setting_k_sub_btn"/>
+                </LinearLayout>
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="主通道减少时的比例（+- 0~100%）："/>
-                <EditText
-                    android:layout_width="70dp"
-                    android:layout_height="wrap_content"
-                    android:inputType="number"
-                    android:layout_weight="1"
-                    android:id="@+id/id_rc_setting_mix_sub_person"/>
-            </LinearLayout>
+                    android:layout_gravity="left">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="二 舵量量程："
+                        android:textSize="20dp"
+                        android:textColor="@color/opaque_black"
+                        android:textStyle="bold" />
+                    <EditText
+                        android:layout_width="70dp"
+                        android:layout_height="wrap_content"
+                        android:inputType="number"
+                        android:layout_weight="1"
+                        android:id="@+id/id_rc_setting_rc_min_value" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=" 到 "/>
+                    <EditText
+                        android:layout_width="70dp"
+                        android:layout_height="wrap_content"
+                        android:inputType="number"
+                        android:layout_weight="1"
+                        android:id="@+id/id_rc_setting_rc_max_value" />
 
-            <android.widget.Space
-                android:layout_width="wrap_content"
-                android:layout_height="10dp" />
+                </LinearLayout>
 
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content">
+
+                <android.widget.Space
+                    android:layout_width="wrap_content"
+                    android:layout_height="10dp" />
+                <Switch
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="三：反转"
+                    android:textColor="@color/opaque_black"
+                    android:textSize="20dp"
+                    android:id="@+id/id_rc_setting_revert_switch"
+                    android:layout_gravity="center_horizontal|left" />
+
+                <android.widget.Space
+                    android:layout_width="wrap_content"
+                    android:layout_height="20dp" />
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="五 微调（-100~100）："
+                    android:text="四 混控："
                     android:textStyle="bold"
                     android:textColor="@color/opaque_black"
                     android:textSize="20dp" />
-                <EditText
-                    android:layout_width="70dp"
-                    android:layout_height="wrap_content"
-                    android:inputType="number"
-                    android:layout_weight="1"
-                    android:id="@+id/id_rc_setting_trim_value" />
-            </LinearLayout>
 
-            <android.widget.Space
-                android:layout_width="wrap_content"
-                android:layout_height="20dp" />
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="left">
-                <Button
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="主通道（1-8）："/>
+                    <EditText
+                        android:layout_width="70dp"
+                        android:layout_height="wrap_content"
+                        android:inputType="number"
+                        android:layout_weight="1"
+                        android:id="@+id/id_rc_setting_mix_main_channel"
+                        android:layout_gravity="center_horizontal" />
+                </LinearLayout>
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="主通道起点位置（默认为中点）："/>
+                    <CheckBox
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="设为零点"
+                        android:id="@+id/id_rc_setting_mix_start_point_type_checkbox"
+                        android:checked="false"/>
+                </LinearLayout>
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="主通道增加时的比例（+- 0~100%）："/>
+                    <EditText
+                        android:layout_width="70dp"
+                        android:layout_height="wrap_content"
+                        android:inputType="number"
+                        android:layout_weight="1"
+                        android:id="@+id/id_rc_setting_mix_add_person"/>
+                </LinearLayout>
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="主通道减少时的比例（+- 0~100%）："/>
+                    <EditText
+                        android:layout_width="70dp"
+                        android:layout_height="wrap_content"
+                        android:inputType="number"
+                        android:layout_weight="1"
+                        android:id="@+id/id_rc_setting_mix_sub_person"/>
+                </LinearLayout>
+
+                <android.widget.Space
+                    android:layout_width="wrap_content"
+                    android:layout_height="10dp" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="五 微调（-100~100）："
+                        android:textStyle="bold"
+                        android:textColor="@color/opaque_black"
+                        android:textSize="20dp" />
+                    <EditText
+                        android:layout_width="70dp"
+                        android:layout_height="wrap_content"
+                        android:inputType="number"
+                        android:layout_weight="1"
+                        android:id="@+id/id_rc_setting_trim_value" />
+                </LinearLayout>
+
+                <android.widget.Space
+                    android:layout_width="wrap_content"
+                    android:layout_height="20dp" />
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:id="@+id/id_rc_setting_ok_btn"
-                    android:text="确认"/>
-                <Button
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/id_rc_setting_cancle_btn"
-                    android:text="取消"/>
+                    android:layout_gravity="left">
+                    <Button
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/id_rc_setting_ok_btn"
+                        android:text="确认"/>
+                    <Button
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/id_rc_setting_cancle_btn"
+                        android:text="取消"/>
+                </LinearLayout>
+
+
             </LinearLayout>
 
+        </RelativeLayout>
+    </ScrollView>
 
-        </LinearLayout>
-
-    </RelativeLayout>
 
 </FrameLayout>

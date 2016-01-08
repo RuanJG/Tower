@@ -600,7 +600,7 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
         }
         rcSettingFragment.doInit(mHandler, bc,mc);
         this.getActivity().findViewById(R.id.box_rcSettingView).setVisibility(View.VISIBLE);
-        this.getActivity().findViewById(R.id.box_jostick_board).setVisibility(View.INVISIBLE);
+        this.getActivity().findViewById(R.id.box_jostick_board).setVisibility(View.GONE);
 
     }
     private void initRcSeekBar(){
@@ -727,11 +727,48 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
             //super.handleMessage(msg);
         }
     };
+
+    private static final int BASE_CONFIG_ID =0;
+    private static final int MIX_CONFIG_ID =1;
     private void doSyncRcMixConfigWithJostick(RcConfigParam.mixConfig mc)
     {
+        int MAVLINK_MSG_ID_RC_CHANNELS = 65;
+        int MAVLINK_MSG_LENGTH = 42;
+        long serialVersionUID = MAVLINK_MSG_ID_RC_CHANNELS;
+        com.MAVLinks.MAVLinkPacket packet = new com.MAVLinks.MAVLinkPacket();
+        packet.len = MAVLINK_MSG_LENGTH;
+        packet.sysid = 255;
+        packet.compid = 190;
+        packet.msgid = MAVLINK_MSG_ID_RC_CHANNELS;
 
+        if(!mc.isValiable()){
+            alertUser("bad mixConfig for sending");
+            return ;
+        }
+        packet.payload.putUnsignedInt(MIX_CONFIG_ID);
+        packet.payload.putShort((short) mc.mainChan);
+        packet.payload.putShort((short) mc.slaveChan);
+        packet.payload.putShort((short) mc.mainChanStartPoint);
+        packet.payload.putShort((short) mc.persenAtAdd);
+        packet.payload.putShort((short) mc.persenAtSub);
+        packet.payload.putShort((short) 0);
+        packet.payload.putShort((short) 0);
+        packet.payload.putUnsignedShort(0);
+        packet.payload.putUnsignedShort(0);
+        packet.payload.putUnsignedShort(0);
+        packet.payload.putUnsignedShort(0);
+        packet.payload.putUnsignedShort(0);
+        packet.payload.putUnsignedShort(0);
+        packet.payload.putUnsignedShort(0);
+        packet.payload.putUnsignedShort(0);
+        packet.payload.putUnsignedShort(0);
+        packet.payload.putUnsignedShort(0);
+        packet.payload.putUnsignedShort(0);
+        packet.payload.putUnsignedByte((short) 0);
+        packet.payload.putUnsignedByte((short) 0);
+
+        doJostickSendMavlink(packet);
     }
-
     private void doSyncRcBaseConfigWithJostick(RcConfigParam.baseConfig bc)
     {
         int MAVLINK_MSG_ID_RC_CHANNELS = 65;
@@ -747,14 +784,14 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
             alertUser("bad baseConfig for sending");
             return ;
         }
-        packet.payload.putUnsignedInt(bc.id);
+        packet.payload.putUnsignedInt(BASE_CONFIG_ID);
+        packet.payload.putShort(bc.id);
         packet.payload.putShort(bc.curverParamk);
         packet.payload.putShort(bc.curveType);
         packet.payload.putShort(bc.maxValue);
         packet.payload.putShort(bc.minValue);
         packet.payload.putShort(bc.trim);
         packet.payload.putShort((short) (bc.revert?1:0));
-        packet.payload.putUnsignedShort(0);
         packet.payload.putUnsignedShort(0);
         packet.payload.putUnsignedShort(0);
         packet.payload.putUnsignedShort(0);
@@ -1202,7 +1239,8 @@ struct param_ip_data{
         }
     }
     private void doJostickSendMavlink(com.MAVLinks.MAVLinkPacket pack){
-        mUartConnect.sendMavPacket(pack);
+        if( ! isJostickDisconnected())
+            mUartConnect.sendMavPacket(pack);
     }
 
 
@@ -1219,8 +1257,9 @@ struct param_ip_data{
                 LengthUnit distanceToHome = getLengthUnitProvider().boxBaseValueToTarget
                         (MathUtils.getDistance(droneHome.getCoordinate(), droneGps.getPosition()));
                 update = String.format("%s", distanceToHome);
-                alertUser("home distance::"+update);
-                mDistanceNow = Integer.parseInt(update);
+                String infos[]=update.split(" ");
+                Log.e("Ruan","home distance::"+infos[0]);
+                mDistanceNow = (int) Float.parseFloat(infos[0]);
                 mDistanceBar.setProgress(mDistanceNow);
             }
         }

@@ -139,7 +139,7 @@ public class BluetoothDevicesActivity extends ActionBarActivity {
             mAppPrefs.setBluetoothDeviceAddress(device.getAddress());
 
 			// Toggle the drone connection
-            DroidPlannerApp.connectToDrone(context);
+            //DroidPlannerApp.connectToDrone(context);
 
 			// Finish the activity
 			finish();

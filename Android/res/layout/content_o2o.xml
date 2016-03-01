@@ -40,7 +40,7 @@
         android:layout_width="120dp"
         android:layout_height="wrap_content"
         android:id="@+id/copter_id"
-        android:text="te350_4G" />
+        android:text="box1_4G" />
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

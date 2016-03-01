@@ -34,7 +34,7 @@ public class RcConfigParam {
         public baseConfig(){ };
         public baseConfig(int i ){ id = (short) i;};
         public boolean isValiable(){
-            if( id < mRcCount && id > 0 && valiable){
+            if( id < mRcCount && id >= 0 && valiable){
                 return true;
             }else{
                 return false;

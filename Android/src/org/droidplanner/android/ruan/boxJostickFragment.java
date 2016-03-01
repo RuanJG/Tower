@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -47,6 +48,7 @@ import com.o3dr.services.android.lib.util.MathUtils;
 import org.beyene.sius.unit.length.LengthUnit;
 import org.droidplanner.android.DroidPlannerApp;
 import org.droidplanner.android.R;
+import org.droidplanner.android.activities.helpers.BluetoothDevicesActivity;
 import org.droidplanner.android.activities.helpers.SuperUI;
 import org.droidplanner.android.fragments.helpers.ApiListenerFragment;
 import org.droidplanner.android.utils.analytics.GAUtils;
@@ -251,7 +253,6 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
             btn4.setOnClickListener(this);
 
 
-        mModeForConnect = 1<<GCS_ID;
         mRadioButton = (CheckBox) this.getActivity().findViewById(R.id.box_radioButton);
         if(mRadioButton!=null){
             mRadioButton.setChecked( isThisMode(TELEM_ID) );
@@ -288,6 +289,7 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
             });
         }
         onModeConnectChange();
+        doTriggle4gConnect();
 
 
         mDistanceBar = (SeekBar) this.getActivity().findViewById(R.id.box_distance_Bar);
@@ -437,9 +439,14 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
     }
     private void onModeConnectChange() {
         mega2560SwitchConnectWay(mModeForConnect);
+        /*
         if( !isThisMode(DTMF_2G_ID)) m2gCheckBox.setChecked(false);
         if( !isThisMode(GCS_ID)) m4gCheckBox.setChecked(false);
         if( !isThisMode(TELEM_ID)) mRadioButton.setChecked(false);
+        */
+        m2gCheckBox.setChecked(isThisMode(DTMF_2G_ID));
+        m4gCheckBox.setChecked(isThisMode(GCS_ID));
+        mRadioButton.setChecked(isThisMode(TELEM_ID));
     }
     private void doTriggleRadioConnect() {
         if( mRadioButton.isChecked()) {
@@ -742,7 +749,7 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
         packet.msgid = MAVLINK_MSG_ID_RC_CHANNELS;
 
         if(!mc.isValiable()){
-            alertUser("bad mixConfig for sending");
+            //alertUser("bad mixConfig for sending");
             return ;
         }
         packet.payload.putUnsignedInt(MIX_CONFIG_ID);
@@ -781,7 +788,7 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
         packet.msgid = MAVLINK_MSG_ID_RC_CHANNELS;
 
         if(!bc.isValiable()){
-            alertUser("bad baseConfig for sending");
+            alertUser("bad baseConfig for sending,id="+bc.id);
             return ;
         }
         packet.payload.putUnsignedInt(BASE_CONFIG_ID);
@@ -897,7 +904,7 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
     private  void doSendRcOverrideByLocal()
     {
         final State droneState = getDrone().getAttribute(AttributeType.STATE);
-        if( isThisMode(GCS_ID) && getDrone().isConnected()  && droneState!=null && droneState.isArmed() ) {
+        if( isThisMode(GCS_ID) && getDrone().isConnected()  && droneState!=null ){//&& droneState.isArmed() ) {
             com.MAVLink.common.msg_rc_channels_override rcMsg = new com.MAVLink.common.msg_rc_channels_override();
             rcMsg.chan1_raw = (short) getSeekBarByRcId(0).getProcess();
             rcMsg.chan2_raw = (short) getSeekBarByRcId(1).getProcess();
@@ -1178,20 +1185,56 @@ struct param_ip_data{
         }
     };
 
-/*
+
     //###########################################################   BluetoothConnection
     public boolean isJostickDisconnected()
     {
         return mBleConnect==null || mBleConnect.getConnectionStatus() == MavLinkConnection.MAVLINK_DISCONNECTED;
     }
+    public void triggleJostickConnect()
+    {
+        if( isJostickDisconnected() )
+            doJostickConnect();
+        else
+            doJostickDisconnect();
+    }
     public void doJostickConnect()
     {
-        if( mAddress != null && isJostickDisconnected()){
+        if( isJostickDisconnected()){
+        //if( mAddress != null && isJostickDisconnected()){
             //if( mBleConnect == null) {
-            mBleConnect = new BluetoothConnection(this.getContext(), mAddress);
-            mBleConnect.addMavLinkConnectionListener(mUartName, mUartlistener);
-            //}
-            mBleConnect.connect();
+            if( mBleConnect != null){
+                mBleConnect.removeMavLinkConnectionListener(mUartName);
+                mBleConnect.disconnect();
+            }
+
+            final Context context = this.getContext();//getApplicationContext();
+            if (true ){// TextUtils.isEmpty(addr)) {
+                startActivity(new Intent(context,
+                        BluetoothDevicesActivity.class)
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+
+            }
+
+            DroidPlannerPrefs mAppPrefs = new DroidPlannerPrefs(context);
+            String addr = mAppPrefs.getBluetoothDeviceAddress();
+
+            if(TextUtils.isEmpty(addr)) {
+                //mBleConnect = new BluetoothConnection(this.getContext(),addr);// mAddress);
+                alertUser("no set ble addr ");
+                return;
+                //mBleConnect = new BluetoothConnection(this.getContext(), "98:d3:31:70:5f:dd");// mAddress);
+            }else{
+               // if( addr.equals("98:d3:31:70:5f:dd") ){
+                    mBleConnect = new BluetoothConnection(this.getContext(), addr);//"98:d3:31:60:05:aa");// mAddress);
+            }
+
+            //mBleConnect = new BluetoothConnection(this.getContext(), "98:d3:31:70:5f:dd");// mAddress);
+            if(mBleConnect != null ) {
+                mBleConnect.addMavLinkConnectionListener(mUartName, mUartlistener);
+                //}
+                mBleConnect.connect();
+            }
         }
     }
     public void doJostickDisconnect()
@@ -1204,11 +1247,14 @@ struct param_ip_data{
             mBleConnect.disconnect();
         }
     }
+    private void doJostickSendMavlink(com.MAVLinks.MAVLinkPacket pack){
+        if( ! isJostickDisconnected())
+            mBleConnect.sendMavPacket(pack);
+    }
 
-*/
 
     //############################################# uart
-
+/*
     public boolean isJostickDisconnected()
     {
         return mUartConnect==null || mUartConnect.getConnectionStatus() == MavLinkConnection.MAVLINK_DISCONNECTED;
@@ -1243,7 +1289,7 @@ struct param_ip_data{
             mUartConnect.sendMavPacket(pack);
     }
 
-
+*/
     //################################################## distance function
     private void updateHomeDistance() {
         final Context context = getActivity().getApplicationContext();
@@ -1572,7 +1618,7 @@ struct param_ip_data{
 
     private Handler sendrcHandler;
     private Runnable sendrcRunner;
-    private  int sendrcMs = 30;
+    private  int sendrcMs = 20;
     private void startSendRcByGcsTask() {
         if( sendrcHandler == null){
             sendrcHandler= new Handler(Looper.getMainLooper());

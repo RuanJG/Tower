@@ -17,7 +17,7 @@ public class RcConfigParam {
         public boolean valiable = false;
         public mixConfig(){ };
         public boolean isValiable(){
-            if( mainChan > 0 && slaveChan >0 && valiable)
+            if( mainChan >= 0 && slaveChan >=0 && valiable)
                 return true;
             return false;
         }

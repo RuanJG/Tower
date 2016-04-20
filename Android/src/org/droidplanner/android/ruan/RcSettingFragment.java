@@ -69,7 +69,7 @@ public class RcSettingFragment extends Fragment {
         mRcMax = rcData.getIntExtra("Max",0);
         Log.e("Ruan","min,max="+mRcMin+","+mRcMax);
         mMixChan = rcData.getIntExtra("mixChan",-1);
-        mMixChanPoint = rcData.getIntExtra("mixChanPoint",0);
+        mMixChanPoint = rcData.getIntExtra("mixChanPoint",1);
         mMixChanAddPersen = rcData.getIntExtra("mixChanAddPersen",0);
         mMixChanSubPersen = rcData.getIntExtra("mixChanSubPersen",0);
         mTrim = rcData.getIntExtra("trim",0);
@@ -97,7 +97,7 @@ public class RcSettingFragment extends Fragment {
             mMixChanSubPersen = mc.persenAtSub;
         }else {
             mMixChan = -1;
-            mMixChanPoint = 0;
+            mMixChanPoint = 1;
             mMixChanAddPersen =  0;
             mMixChanSubPersen =  0;
         }
@@ -208,6 +208,7 @@ public class RcSettingFragment extends Fragment {
             mixCheckbox.setChecked(rcData.getIntExtra("mixChanPoint",1)==0);
         }*/
 
+        mMixChan += 1;// for the user view , channle is 1-8   , in program 0-7
         mixChanText.setText(mMixChan+"");
         mixAddPersen.setText(mMixChanAddPersen+"");
         mixSubPersen.setText(mMixChanSubPersen+"");
@@ -262,13 +263,13 @@ public class RcSettingFragment extends Fragment {
             bundle.putInt("mixChan", -1);
         }
         value = Integer.parseInt(mixAddPersen.getText().toString());
-        if( value > -100 && value < 100 ) {
+        if( value >= -100 && value <= 100 ) {
             bundle.putInt("mixChanAddPersen", value);
         }else {
             bundle.putInt("mixChanAddPersen", 0);
         }
         value = Integer.parseInt(mixSubPersen.getText().toString());
-        if( value > -100 && value < 100 ) {
+        if( value >= -100 && value <= 100 ) {
             bundle.putInt("mixChanSubPersen", value);
         }else {
             bundle.putInt("mixChanSubPersen", 0);

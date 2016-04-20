@@ -178,7 +178,7 @@
                     <EditText
                         android:layout_width="70dp"
                         android:layout_height="wrap_content"
-                        android:inputType="number"
+                        android:inputType="numberSigned"
                         android:layout_weight="1"
                         android:id="@+id/id_rc_setting_mix_add_person"/>
                 </LinearLayout>
@@ -192,7 +192,7 @@
                     <EditText
                         android:layout_width="70dp"
                         android:layout_height="wrap_content"
-                        android:inputType="number"
+                        android:inputType="numberSigned"
                         android:layout_weight="1"
                         android:id="@+id/id_rc_setting_mix_sub_person"/>
                 </LinearLayout>
@@ -214,7 +214,7 @@
                     <EditText
                         android:layout_width="70dp"
                         android:layout_height="wrap_content"
-                        android:inputType="number"
+                        android:inputType="numberSigned"
                         android:layout_weight="1"
                         android:id="@+id/id_rc_setting_trim_value" />
                 </LinearLayout>

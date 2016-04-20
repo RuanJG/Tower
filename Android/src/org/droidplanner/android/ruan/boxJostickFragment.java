@@ -749,7 +749,7 @@ public class boxJostickFragment  extends ApiListenerFragment  implements View.On
         packet.msgid = MAVLINK_MSG_ID_RC_CHANNELS;
 
         if(!mc.isValiable()){
-            //alertUser("bad mixConfig for sending");
+            alertUser("bad mixConfig for sending");
             return ;
         }
         packet.payload.putUnsignedInt(MIX_CONFIG_ID);
@@ -1618,7 +1618,7 @@ struct param_ip_data{
 
     private Handler sendrcHandler;
     private Runnable sendrcRunner;
-    private  int sendrcMs = 20;
+    private  int sendrcMs = 18;
     private void startSendRcByGcsTask() {
         if( sendrcHandler == null){
             sendrcHandler= new Handler(Looper.getMainLooper());
